@@ -25,7 +25,7 @@ def print_done(str):
 @click.option('--source-field', help='Document field to translate', default="content")
 @click.option('--target-field', help='Document field to translate', default="content_translated")
 @click.option('--query', help='Search query string to filter result')
-@click.option('--data-dir', help='Path to the directory where to language model will be downloaded', default="/tmp/apertium")
+@click.option('--data-dir', help='Path to the directory where to language model will be downloaded')
 def main(**options):
 
     with print_done('Instantiating Apertium...'):
@@ -40,7 +40,7 @@ def main(**options):
 
     with print_done('Translating %s document(s)...' % search.execute().hits.total):
         # Use scrolling mecanism from Elasticsearch to iterate over each result
-        for hit in es_search.source([options['source_field']]).scan():
+        for hit in search.source([options['source_field']]).scan():
             # Extract the value from a dict to avoid failing when the field is missing
             value = hit.to_dict().get(options['source_field'])
             translated = apertium.translate(value)
