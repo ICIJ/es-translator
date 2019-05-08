@@ -1,10 +1,10 @@
-import tempfile
 import sys
+from tempfile import mkdtemp, NamedTemporaryFile
 from functools import lru_cache
 from pycountry import languages
 from os.path import join, isdir
 from glob import glob
-from sh import apertium, apertium_get, echo, pushd, mkdir, cp, grep
+from sh import apertium, apertium_get, pushd, mkdir, cp, grep, ErrorReturnCode
 
 class Apertium:
     def __init__(self, source, target, intermediary = None, pack_dir = None):
@@ -12,7 +12,7 @@ class Apertium:
         self.target = target
         self.intermediary = intermediary
         # Create a temporary pack dir (if needed)
-        self.pack_dir = pack_dir or tempfile.mkdtemp()
+        self.pack_dir = pack_dir or mkdtemp()
         # Raise an exception if the language pair is unkown
         if not self.is_pair_available:
             try:
@@ -184,7 +184,14 @@ class Apertium:
         for pair in self.pairs_pipeline:
             # Create a sub-process witch can receive a input
             input = self.translate_with_apertium(input, pair)
-        return str(input)
+        return input
 
     def translate_with_apertium(self, input, pair):
-        return apertium(echo(str(input)), pair, '-ud', self.pack_dir)
+        try:
+            # Works with a temporary file as buffer (opened in text mode)
+            with NamedTemporaryFile(mode='w+t') as temp_input_file:
+                temp_input_file.writelines(input)
+                input_translated = apertium('-ud', self.pack_dir, pair, temp_input_file.name)
+        except ErrorReturnCode:
+            raise Exception('Unable to translate this string.')
+        return str(input_translated)

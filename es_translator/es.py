@@ -19,6 +19,11 @@ class TranslatedHit():
         return self.hit.meta.id
 
     @property
+    def routing(self):
+        # Some documents don't have a routing property
+        return self.hit.meta.to_dict().get('routing', None)
+
+    @property
     def index(self):
         return self.hit.meta.index
 
@@ -33,7 +38,7 @@ class TranslatedHit():
         return body
 
     def save(self, client):
-        client.update(index = self.index, doc_type = self.doc_type, id = self.id, body = self.body)
+        client.update(index = self.index, doc_type = self.doc_type, id = self.id, routing = self.routing, body = self.body)
 
     def add_translation(self, apertium):
         if not self.is_translated(apertium.source_name, apertium.target_name):

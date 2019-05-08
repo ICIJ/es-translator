@@ -37,10 +37,11 @@ def main(**options):
     # Add query_string to the search
     if options['query']:
         search = search.query("query_string", query=options['query'])
-
-    with print_done('Translating %s document(s)...' % search.execute().hits.total):
-        # Use scrolling mecanism from Elasticsearch to iterate over each result
-        for hit in search.source([options['source_field'], options['target_field']]).scan():
+    total_hits = search.execute().hits.total
+    # Use scrolling mecanism from Elasticsearch to iterate over each result
+    hits = search.source([options['source_field'], options['target_field'], '_routing']).scan()
+    with click.progressbar(hits, label = 'Translating %s document(s)...' % total_hits, length = total_hits, width = 0) as bar:
+        for hit in bar:
             # Extract the value from a dict to avoid failing when the field is missing
             translated_hit = TranslatedHit(hit, options['source_field'], options['target_field'])
             translated_hit.add_translation(apertium)
