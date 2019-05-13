@@ -17,4 +17,4 @@ build-docker:
 	docker build -t $(DOCKER_NAME) .
 
 run-docker:
-	docker run -it $(DOCKER_NAME) sh
+	docker run -it $(DOCKER_NAME)
