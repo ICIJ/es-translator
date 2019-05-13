@@ -15,6 +15,12 @@ jobs:
     steps:
       - checkout
 
+      - run:
+          name: install Apertium
+          command: |
+            apt-get update -qq
+            apt-get install -qq -y apertium-all-dev
+
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "requirements.txt" }}
