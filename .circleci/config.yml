@@ -16,12 +16,12 @@ jobs:
       - checkout
 
       - run:
-          name: add Apertium repository
+          name: Add Apertium repository
           command: |
             wget https://apertium.projectjj.com/apt/install-release.sh -O - | sudo bash
 
       - run:
-          name: install Apertium
+          name: Install Apertium
           command: |
             sudo apt-get install -qq -y apertium-all-dev
 
@@ -31,7 +31,7 @@ jobs:
           - v1-dependencies-
 
       - run:
-          name: install dependencies
+          name: Install dependencies
           command: |
             python3 -m venv venv
             . venv/bin/activate
@@ -43,7 +43,7 @@ jobs:
           key: v1-dependencies-{{ checksum "requirements.txt" }}
 
       - run:
-          name: run tests
+          name: Run tests
           command: |
             . venv/bin/activate
             nosetests --logging-level=WARNING
