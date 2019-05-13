@@ -16,6 +16,11 @@ jobs:
       - checkout
 
       - run:
+          name: add Apertium repository
+          command: |
+            wget https://apertium.projectjj.com/apt/install-release.sh -O - | sudo bash
+
+      - run:
           name: install Apertium
           command: |
             sudo apt-get update -qq
