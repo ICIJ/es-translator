@@ -1,3 +1,4 @@
+DOCKER_NAME := es-translator
 VIRTUALENV := venv/
 
 clean:
@@ -11,3 +12,9 @@ install_virtualenv:
 
 install_pip:
 	. $(VIRTUALENV)bin/activate; pip install -r requirements.txt
+
+build-docker:
+	docker build -t $(DOCKER_NAME) .
+
+run-docker:
+	docker run -it $(DOCKER_NAME) sh

@@ -1,7 +1,12 @@
-FROM debian:stretch-slim
+FROM ubuntu:18.04
+
+RUN apt-get update -qq && apt-get install -qq -y lsb-release wget python3 python3-virtualenv
 
 WORKDIR /tmp
-ADD https://apertium.projectjj.com/apt/install-nightly.sh
-RUN chmod +x ./install-nightly.sh && ./install-nightly.sh
+ADD https://apertium.projectjj.com/apt/install-release.sh /tmp/install-release.sh
+RUN chmod +x ./install-release.sh && ./install-release.sh
 
-RUN apt-get update -qq && apt-get install -qq apertium-all-dev
+RUN apt-get update -qq && apt-get install -qq -y apertium-all-dev
+
+WORKDIR /opt/es-translator
+COPY . .

@@ -45,10 +45,6 @@ class Apertium:
         return languages.get(alpha_2=self.source_alpha_2).name
 
     @property
-    def source_common_name(self):
-        return languages.get(alpha_2=self.source_alpha_2).common_name
-
-    @property
     def target_alpha_2(self):
         return self.to_alpha_2(self.target)
 
@@ -59,10 +55,6 @@ class Apertium:
     @property
     def target_name(self):
         return languages.get(alpha_2=self.target_alpha_2).name
-
-    @property
-    def target_common_name(self):
-        return languages.get(alpha_2=self.target_alpha_2).common_name
 
     @property
     def pair(self):
@@ -123,14 +115,17 @@ class Apertium:
     @lru_cache()
     def pair_packages(self, module = 'trunk'):
         lists = apertium_get('-l', module) if module is not None else apertium_get('-l')
-        return [ s.strip() for s in grep(lists, '-').split('\n') ]
+        return [ s.strip() for s in grep(lists, '-').strip().split('\n') ]
 
     def pair_to_pair_package(self, pair):
         pair_parts = pair.split('-')
         combinations = []
         combinations.append('%s-%s' % (pair_parts[0], pair_parts[1]))
         combinations.append('%s-%s' % (pair_parts[1], pair_parts[0]))
-        return next(p for p in self.pair_packages() if p in combinations)
+        try:
+            return next(p for p in self.pair_packages() if p in combinations)
+        except StopIteration:
+            return None
 
     def download_necessary_pairs(self):
         if self.pair in self.pair_packages() or self.pair_inverse in self.pair_packages():
