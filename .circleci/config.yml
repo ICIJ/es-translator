@@ -18,8 +18,8 @@ jobs:
       - run:
           name: install Apertium
           command: |
-            apt-get update -qq
-            apt-get install -qq -y apertium-all-dev
+            sudo apt-get update -qq
+            sudo apt-get install -qq -y apertium-all-dev
 
       - restore_cache:
           keys:
