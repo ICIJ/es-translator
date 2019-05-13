@@ -6,7 +6,8 @@ from tempfile import mkdtemp
 from es_translator.apertium import Apertium
 
 root = lambda x: os.path.join(os.path.abspath(dirname(dirname(__file__))), x)
-pack_dir = root('.cache')
+# Use the .cache dir if it exists, or use a temporary dir
+pack_dir = root('.cache') if os.path.isdir(root('.cache')) else mkdtemp()
 
 class TestApertium(TestCase):
     @classmethod
