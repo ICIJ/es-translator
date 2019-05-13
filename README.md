@@ -1,5 +1,7 @@
 # ES Translator
 
+[![CircleCI](https://circleci.com/gh/ICIJ/es-translator.svg?style=svg)](https://circleci.com/gh/ICIJ/es-translator)
+
 A lazy yet bulletproof machine translation tool for Elastichsearch.
 
 ```
