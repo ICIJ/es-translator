@@ -34,13 +34,13 @@ def main(**options):
         apertium = Apertium(options['source_language'], options['target_language'], options['intermediary_language'], options['data_dir'])
     # Build the search
     client = Elasticsearch(options['url'])
-    search = Search(index=options['index'], using=client)
+    search = Search(index=options['index'], using=client, scroll=options['scan_scroll'])
     # Add query_string to the search
     if options['query']:
         search = search.query("query_string", query=options['query'])
     total_hits = search.execute().hits.total
     # Use scrolling mecanism from Elasticsearch to iterate over each result
-    hits = search.source([options['source_field'], options['target_field'], '_routing']).scan(scroll=options['scan_scroll'])
+    hits = search.source([options['source_field'], options['target_field'], '_routing']).scan()
     with click.progressbar(hits, label = 'Translating %s document(s)...' % total_hits, length = total_hits, width = 0) as bar:
         for hit in bar:
             # Extract the value from a dict to avoid failing when the field is missing
