@@ -23,7 +23,7 @@ jobs:
       - run:
           name: Install Apertium
           command: |
-            sudo apt-get install -qq -y apertium-all-dev
+            sudo apt-get install -qq -y apertium-all-dev dpkg-dev fakeroot lintian
 
       - restore_cache:
           keys:

@@ -1,0 +1,4 @@
+
+      
+    lt-proc '/usr/share/apertium/apertium-en-es/es-en.automorf.bin' | apertium-tagger -g $2 '/usr/share/apertium/apertium-en-es/es-en.prob' | apertium-pretransfer| apertium-transfer '/usr/share/apertium/apertium-en-es/apertium-en-es.es-en.t1x'  '/usr/share/apertium/apertium-en-es/es-en.t1x.bin'  '/usr/share/apertium/apertium-en-es/es-en.autobil.bin' | apertium-interchunk '/usr/share/apertium/apertium-en-es/apertium-en-es.es-en.t2x'  '/usr/share/apertium/apertium-en-es/es-en.t2x.bin' | apertium-postchunk '/usr/share/apertium/apertium-en-es/apertium-en-es.es-en.t3x'  '/usr/share/apertium/apertium-en-es/es-en.t3x.bin' | lt-proc $1 '/usr/share/apertium/apertium-en-es/es-en_US.autogen.bin' | lt-proc -p '/usr/share/apertium/apertium-en-es/es-en.autopgen.bin' 
+  

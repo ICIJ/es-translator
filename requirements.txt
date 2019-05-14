@@ -3,3 +3,4 @@ elasticsearch>=7.0.0,<8.0.0
 elasticsearch-dsl>=7.0.0,<8.0.0
 sh==1.12.13
 pycountry==18.12.8
+deb-pkg-tools==5.2

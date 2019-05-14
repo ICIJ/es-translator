@@ -1,0 +1,186 @@
+<?xml version="1.0"?>
+<transfer>
+  <section-def-cats>
+    <def-cat n="apos">
+      <cat-item lemma="&apos;" tags="apos"/>
+    </def-cat>
+
+    <def-cat n="aposgen">
+      <cat-item lemma="'s" tags="gen"/>
+    </def-cat>
+
+
+    <def-cat n="apos_aposgen">
+      <cat-item lemma="&apos;" tags="apos"/>
+      <cat-item lemma="'s" tags="gen"/>
+    </def-cat>
+
+
+    <def-cat n="any">
+      <cat-item tags=""/>        <!-- unknown words -->
+      <cat-item tags="*"/>
+    </def-cat>
+
+  </section-def-cats>
+ 
+  <section-def-attrs>
+    <def-attr n="nbr">
+      <attr-item tags="sp"/>
+      <attr-item tags="sg"/>
+      <attr-item tags="pl"/>
+    </def-attr>
+  </section-def-attrs>
+
+  <section-def-vars>
+    <def-var n="dummy"/>
+  </section-def-vars>
+
+  <section-rules>
+    <rule>
+      <pattern>
+        <pattern-item n="apos"/>
+        <pattern-item n="any"/>
+        <pattern-item n="aposgen"/>
+      </pattern>
+      <action>
+	    <out>
+	      <lu><clip pos="1" side="tl" part="whole"/></lu>
+	      <b pos="1"/>
+	      <lu><clip pos="2" side="tl" part="whole"/></lu>
+              <!-- Remove the space - it was added by pretransfer -->
+	      <lu><lit v="&apos;"/><lit-tag v="apos"/></lu>
+	    </out>
+      </action>
+    </rule>
+
+    <rule>
+      <pattern>
+        <pattern-item n="apos"/>
+        <pattern-item n="any"/>
+        <pattern-item n="any"/>
+        <pattern-item n="aposgen"/>
+      </pattern>
+      <action>
+	    <out>
+	      <lu><clip pos="1" side="tl" part="whole"/></lu>
+	      <b pos="1"/>
+	      <lu><clip pos="2" side="tl" part="whole"/></lu>
+	      <b pos="2"/>
+	      <lu><clip pos="3" side="tl" part="whole"/></lu>
+              <!-- Remove the space - it was added by pretransfer -->
+	      <lu><lit v="&apos;"/><lit-tag v="apos"/></lu>
+	    </out>
+      </action>
+    </rule>
+
+    <rule>
+      <pattern>
+        <pattern-item n="apos"/>
+        <pattern-item n="any"/>
+        <pattern-item n="any"/>
+        <pattern-item n="any"/>
+        <pattern-item n="aposgen"/>
+      </pattern>
+      <action>
+	    <out>
+	      <lu><clip pos="1" side="tl" part="whole"/></lu>
+	      <b pos="1"/>
+	      <lu><clip pos="2" side="tl" part="whole"/></lu>
+	      <b pos="2"/>
+	      <lu><clip pos="3" side="tl" part="whole"/></lu>
+	      <b pos="3"/>
+	      <lu><clip pos="4" side="tl" part="whole"/></lu>
+              <!-- Remove the space - it was added by pretransfer -->
+	      <lu><lit v="&apos;"/><lit-tag v="apos"/></lu>
+	    </out>
+      </action>
+    </rule>
+
+    <rule>
+      <pattern>
+        <pattern-item n="apos"/>
+        <pattern-item n="any"/>
+        <pattern-item n="any"/>
+        <pattern-item n="any"/>
+        <pattern-item n="any"/>
+        <pattern-item n="aposgen"/>
+      </pattern>
+      <action>
+	    <out>
+	      <lu><clip pos="1" side="tl" part="whole"/></lu>
+	      <b pos="1"/>
+	      <lu><clip pos="2" side="tl" part="whole"/></lu>
+	      <b pos="2"/>
+	      <lu><clip pos="3" side="tl" part="whole"/></lu>
+	      <b pos="3"/>
+	      <lu><clip pos="4" side="tl" part="whole"/></lu>
+	      <b pos="4"/>
+	      <lu><clip pos="5" side="tl" part="whole"/></lu>
+              <!-- Remove the space - it was added by pretransfer -->
+	      <lu><lit v="&apos;"/><lit-tag v="apos"/></lu>
+	    </out>
+      </action>
+    </rule>
+
+    <rule>
+      <pattern>
+        <pattern-item n="apos"/>
+        <pattern-item n="any"/>
+        <pattern-item n="any"/>
+        <pattern-item n="any"/>
+        <pattern-item n="any"/>
+        <pattern-item n="any"/>
+        <pattern-item n="aposgen"/>
+      </pattern>
+      <action>
+	    <out>
+	      <lu><clip pos="1" side="tl" part="whole"/></lu>
+	      <b pos="1"/>
+	      <lu><clip pos="2" side="tl" part="whole"/></lu>
+	      <b pos="2"/>
+	      <lu><clip pos="3" side="tl" part="whole"/></lu>
+	      <b pos="3"/>
+	      <lu><clip pos="4" side="tl" part="whole"/></lu>
+	      <b pos="4"/>
+	      <lu><clip pos="5" side="tl" part="whole"/></lu>
+	      <b pos="5"/>
+	      <lu><clip pos="6" side="tl" part="whole"/></lu>
+              <!-- Remove the space - it was added by pretransfer -->
+	      <lu><lit v="&apos;"/><lit-tag v="apos"/></lu>
+	    </out>
+      </action>
+    </rule>
+
+    <rule>
+      <pattern>
+        <pattern-item n="apos"/>
+        <pattern-item n="any"/>
+        <pattern-item n="any"/>
+        <pattern-item n="any"/>
+        <pattern-item n="any"/>
+        <pattern-item n="any"/>
+        <pattern-item n="any"/>
+        <pattern-item n="aposgen"/>
+      </pattern>
+      <action>
+	    <out>
+	      <lu><clip pos="1" side="tl" part="whole"/></lu>
+	      <b pos="1"/>
+	      <lu><clip pos="2" side="tl" part="whole"/></lu>
+	      <b pos="2"/>
+	      <lu><clip pos="3" side="tl" part="whole"/></lu>
+	      <b pos="3"/>
+	      <lu><clip pos="4" side="tl" part="whole"/></lu>
+	      <b pos="4"/>
+	      <lu><clip pos="5" side="tl" part="whole"/></lu>
+	      <b pos="5"/>
+	      <lu><clip pos="6" side="tl" part="whole"/></lu>
+	      <b pos="6"/>
+	      <lu><clip pos="7" side="tl" part="whole"/></lu>
+              <!-- Remove the space - it was added by pretransfer -->
+	      <lu><lit v="&apos;"/><lit-tag v="apos"/></lu>
+	    </out>
+      </action>
+    </rule>
+  </section-rules>
+</transfer>

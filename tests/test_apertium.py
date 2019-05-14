@@ -12,9 +12,9 @@ pack_dir = root('.cache') if os.path.isdir(root('.cache')) else mkdtemp()
 class TestApertium(TestCase):
     @classmethod
     def setUpClass(self):
-        self.en2es = Apertium('en', 'es', None, pack_dir)
-        self.es2en = Apertium('es', 'en', None, pack_dir)
-        self.pt2en = Apertium('pt', 'en', 'es', pack_dir)
+        self.en2es = Apertium(source = 'en', target = 'es', intermediary = None, pack_dir = pack_dir)
+        self.es2en = Apertium(source = 'es', target = 'en', intermediary = None, pack_dir = pack_dir)
+        self.pt2en = Apertium(source = 'pt', target = 'en', intermediary = 'es', pack_dir = pack_dir)
 
     def test_pair_directory_is_created(self):
         self.assertIn('apertium-%s' % self.en2es.pair_package, os.listdir(pack_dir))
@@ -43,4 +43,4 @@ class TestApertium(TestCase):
         self.assertEqual(self.en2es.target_name, 'Spanish')
 
     def test_translate_simple_word(self):
-        self.assertEqual(self.es2en.translate('hello sir'), 'SPANISH')
+        self.assertEqual(self.en2es.translate('hello'), 'hola')

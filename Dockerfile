@@ -1,6 +1,7 @@
 FROM ubuntu:18.04
 
-RUN apt-get update -qq && apt-get install -qq -y lsb-release wget python3 python3-pip python3-virtualenv
+RUN apt-get update -qq && apt-get install -qq -y lsb-release wget python3 \
+  python3-pip python3-virtualenv dpkg-dev fakeroot lintian
 
 WORKDIR /tmp
 ADD https://apertium.projectjj.com/apt/install-release.sh /tmp/install-release.sh
