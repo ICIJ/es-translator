@@ -1,4 +1,5 @@
 import sys
+from es_translator.apertium_repository import ApertiumRepository
 from tempfile import mkdtemp, NamedTemporaryFile
 from functools import lru_cache
 from pycountry import languages
@@ -13,6 +14,8 @@ class Apertium:
         self.intermediary = intermediary
         # Create a temporary pack dir (if needed)
         self.pack_dir = pack_dir or mkdtemp()
+        # A class to download necessary pair package
+        self.repository = ApertiumRepository(self.pack_dir)
         # Raise an exception if the language pair is unkown
         if not self.is_pair_available:
             try:
@@ -136,14 +139,7 @@ class Apertium:
     def download_pair(self, pair = None):
         if pair is None: pair = self.pair
         # All commands must be run from the pack dir
-        with pushd(self.pack_dir):
-            # Get the pair and print-out the result
-            apertium_get(self.pair_to_pair_package(pair))
-            # Create a modes directory to save all modes files
-            mkdir('-p', './modes')
-            # Copy all the mode files
-            self.copy_packages_modes()
-        return True
+        return self.repository.install_pair_package(pair)
 
     def download_intermediary_pairs(self):
         for pair in self.intermediary_pairs:
@@ -170,11 +166,6 @@ class Apertium:
         children = leaf['children'].values()
         return lang in leaf['children'] or any(self.leaf_has_lang(child_leaf, lang) for child_leaf in children)
 
-    def copy_packages_modes(self):
-        with pushd(self.pack_dir):
-            # Copy all the mode files
-            cp(glob('./*/modes/*.mode'), './modes')
-
     def translate(self, input):
         for pair in self.pairs_pipeline:
             # Create a sub-process witch can receive a input
@@ -186,6 +177,7 @@ class Apertium:
             # Works with a temporary file as buffer (opened in text mode)
             with NamedTemporaryFile(mode='w+t') as temp_input_file:
                 temp_input_file.writelines(input)
+                temp_input_file.seek(0)
                 input_translated = apertium('-ud', self.pack_dir, pair, temp_input_file.name)
         except ErrorReturnCode:
             raise Exception('Unable to translate this string.')

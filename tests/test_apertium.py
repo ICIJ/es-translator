@@ -43,4 +43,7 @@ class TestApertium(TestCase):
         self.assertEqual(self.en2es.target_name, 'Spanish')
 
     def test_translate_simple_word(self):
-        self.assertEqual(self.en2es.translate('hello'), 'hola')
+        self.assertEqual(self.en2es.translate('hello').strip(), 'hola')
+        self.assertEqual(self.en2es.translate('hello sir').strip(), 'hola Señor')
+        self.assertEqual(self.es2en.translate('hola').strip(), 'hello')
+        self.assertEqual(self.pt2en.translate('obrigado').strip(), 'thank you')
