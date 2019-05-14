@@ -15,7 +15,7 @@ install_virtualenv:
 install_pip:
 		. $(VIRTUALENV)bin/activate; pip install -r requirements.txt
 
-docker-publish: bump-version docker-build docker-tag docker-push
+docker-publish: docker-build docker-tag docker-push
 
 docker-run:
 		docker run -p 3000:3000 -it $(DOCKER_NAME)

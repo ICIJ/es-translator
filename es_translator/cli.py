@@ -28,6 +28,7 @@ def print_done(str):
 @click.option('--target-field', help='Document field to translate', default="content_translated")
 @click.option('--query', help='Search query string to filter result')
 @click.option('--data-dir', help='Path to the directory where to language model will be downloaded')
+@click.option('--scan-scroll', help='Scroll duration (set to higher value if you\'re processing a lot of documents)', default="5m")
 def main(**options):
     with print_done('Instantiating Apertium...'):
         apertium = Apertium(options['source_language'], options['target_language'], options['intermediary_language'], options['data_dir'])
@@ -39,7 +40,7 @@ def main(**options):
         search = search.query("query_string", query=options['query'])
     total_hits = search.execute().hits.total
     # Use scrolling mecanism from Elasticsearch to iterate over each result
-    hits = search.source([options['source_field'], options['target_field'], '_routing']).scan()
+    hits = search.source([options['source_field'], options['target_field'], '_routing']).scan(scroll=options['scan-scroll'])
     with click.progressbar(hits, label = 'Translating %s document(s)...' % total_hits, length = total_hits, width = 0) as bar:
         for hit in bar:
             # Extract the value from a dict to avoid failing when the field is missing
