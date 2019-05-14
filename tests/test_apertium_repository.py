@@ -2,6 +2,7 @@ import os
 from os.path import dirname, isfile, isdir, basename
 
 from unittest import  TestCase
+from tempfile import mkdtemp
 from es_translator.apertium_repository import ApertiumRepository
 
 root = lambda x: os.path.join(os.path.abspath(dirname(dirname(__file__))), x)
