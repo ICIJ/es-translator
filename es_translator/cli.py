@@ -20,7 +20,7 @@ def print_done(str):
     yield
     print('{0} \033[92mdone\033[0m'.format(str))
 
-def translate_hit(hit, apertium, options):
+def translate_hit(hit, client, apertium, options):
     # Extract the value from a dict to avoid failing when the field is missing
     translated_hit = TranslatedHit(hit, options['source_field'], options['target_field'])
     translated_hit.add_translation(apertium)
@@ -68,5 +68,5 @@ def main(**options):
         for hit_group in grouper(bar, options['pool_size']):
             # We create a pool
             with Pool(options['pool_size']) as p:
-                hit_group = ([hit, apertium, options] for hit in hit_group)
+                hit_group = ([hit, client, apertium, options] for hit in hit_group)
                 p.starmap(translate_hit, hit_group)
