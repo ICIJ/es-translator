@@ -27,7 +27,6 @@ def translate_hit(hit, apertium, options):
     # Skip on dry run
     if not options['dry_run']: translated_hit.save(client)
 
-
 def grouper(iterable, n):
     iterable = iter(iterable)
     while True:
@@ -48,7 +47,7 @@ def grouper(iterable, n):
 @click.option('--query', help='Search query string to filter result')
 @click.option('--data-dir', help='Path to the directory where to language model will be downloaded')
 @click.option('--scan-scroll', help='Scroll duration (set to higher value if you\'re processing a lot of documents)', default="5m")
-@click.option('--dry-run', help='Don\'t save anything in Elasticsearch', is_flag=True)
+@click.option('--dry-run', help='Don\'t save anything in Elasticsearch', is_flag=True, default=False)
 @click.option('--pool-size', help='Number of paralell processes to start', default=1)
 def main(**options):
     with print_done('Instantiating Apertium...'):
