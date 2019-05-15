@@ -1,11 +1,13 @@
 import click
 import sys
 
+import itertools
 from contextlib import contextmanager
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from es_translator.apertium import Apertium
 from es_translator.es import TranslatedHit
+from multiprocessing import Pool
 
 def print_flush(str):
     sys.stdout.write('\r{0}'.format(str))
@@ -18,6 +20,23 @@ def print_done(str):
     yield
     print('{0} \033[92mdone\033[0m'.format(str))
 
+def translate_hit(hit, apertium, options):
+    # Extract the value from a dict to avoid failing when the field is missing
+    translated_hit = TranslatedHit(hit, options['source_field'], options['target_field'])
+    translated_hit.add_translation(apertium)
+    # Skip on dry run
+    if not options['dry_run']: translated_hit.save(client)
+
+
+def grouper(iterable, n):
+    iterable = iter(iterable)
+    while True:
+        tup = tuple(itertools.islice(iterable, 0, n))
+        if tup:
+            yield tup
+        else:
+            break
+
 @click.command()
 @click.option('--url', required=True, help='Elastichsearch URL')
 @click.option('--index', required=True, help='Elastichsearch Index')
@@ -29,6 +48,8 @@ def print_done(str):
 @click.option('--query', help='Search query string to filter result')
 @click.option('--data-dir', help='Path to the directory where to language model will be downloaded')
 @click.option('--scan-scroll', help='Scroll duration (set to higher value if you\'re processing a lot of documents)', default="5m")
+@click.option('--dry-run', help='Don\'t save anything in Elasticsearch', is_flag=True)
+@click.option('--pool-size', help='Number of paralell processes to start', default=1)
 def main(**options):
     with print_done('Instantiating Apertium...'):
         apertium = Apertium(options['source_language'], options['target_language'], options['intermediary_language'], options['data_dir'])
@@ -44,8 +65,9 @@ def main(**options):
     # Use scrolling mecanism from Elasticsearch to iterate over each result
     hits = search.scan()
     with click.progressbar(hits, label = 'Translating %s document(s)...' % total_hits, length = total_hits, width = 0) as bar:
-        for hit in bar:
-            # Extract the value from a dict to avoid failing when the field is missing
-            translated_hit = TranslatedHit(hit, options['source_field'], options['target_field'])
-            translated_hit.add_translation(apertium)
-            translated_hit.save(client)
+        # We group search result in bucket of the size of the pool
+        for hit_group in grouper(bar, options['pool_size']):
+            # We create a pool
+            with Pool(options['pool_size']) as p:
+                hit_group = ([hit, apertium, options] for hit in hit_group)
+                p.starmap(translate_hit, hit_group)
