@@ -20,12 +20,15 @@ def print_done(str):
     yield
     print('{0} \033[92mdone\033[0m'.format(str))
 
-def translate_hit(hit, client, apertium, options):
+def translate_hit(hit, apertium, options):
     # Extract the value from a dict to avoid failing when the field is missing
     translated_hit = TranslatedHit(hit, options['source_field'], options['target_field'])
     translated_hit.add_translation(apertium)
     # Skip on dry run
-    if not options['dry_run']: translated_hit.save(client)
+    if not options['dry_run']:
+        # Create a new  client to 
+        client = Elasticsearch(options['url'])
+        translated_hit.save(client)
 
 def grouper(iterable, n):
     iterable = iter(iterable)
@@ -68,5 +71,5 @@ def main(**options):
         for hit_group in grouper(bar, options['pool_size']):
             # We create a pool
             with Pool(options['pool_size']) as p:
-                hit_group = ([hit, client, apertium, options] for hit in hit_group)
+                hit_group = ([hit, apertium, options] for hit in hit_group)
                 p.starmap(translate_hit, hit_group)
