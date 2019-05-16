@@ -1,5 +1,6 @@
 import sys
 from es_translator.apertium_repository import ApertiumRepository
+from es_translator.logger import logger
 from tempfile import mkdtemp, NamedTemporaryFile
 from functools import lru_cache
 from pycountry import languages
@@ -22,6 +23,8 @@ class Apertium:
                 self.download_necessary_pairs()
             except StopIteration:
                 raise Exception('The pair is not available')
+        else:
+            logger.info('Existing package(s) found for pair %s' % self.pair)
 
     def to_alpha_2(self, code):
         if len(code) == 3:
@@ -131,6 +134,7 @@ class Apertium:
             return None
 
     def download_necessary_pairs(self):
+        logger.info('Downloading necessary package(s) for %s' % self.pair)
         if self.pair in self.pair_packages() or self.pair_inverse in self.pair_packages():
             self.download_pair()
         else:

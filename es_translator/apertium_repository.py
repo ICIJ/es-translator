@@ -1,4 +1,5 @@
 from deb_pkg_tools.control import deb822_from_string
+from es_translator.logger import logger
 from fileinput import FileInput
 from functools import lru_cache
 from glob import glob
@@ -40,6 +41,7 @@ class ApertiumRepository:
         try:
             return next(filter(is_package, self.packages))
         except StopIteration:
+            logger.warning('Unable to found package %s' % package)
             return None
 
     def find_pair_package(self, pair):
@@ -48,6 +50,7 @@ class ApertiumRepository:
         try:
             return next(filter(is_pair, self.pair_packages))
         except StopIteration:
+            logger.warning('Unable to found pair package %s' % pair)
             return None
 
     def is_apertium_pair(self, control):
@@ -65,6 +68,7 @@ class ApertiumRepository:
         mkdir('-p', package_dir)
         # Don't download the file twice
         if force or not isfile(package_file):
+            logger.info('Downloading package %s' % name)
             request.urlretrieve(package_url, package_file)
         return package_file
 
@@ -92,6 +96,7 @@ class ApertiumRepository:
         return workdir
 
     def install_pair_package(self, pair):
+        logger.info('Installing pair package %s' % pair)
         package_file = self.download_pair_package(pair)
         package_dir = self.extract_pair_package(package_file)
         self.import_modes(clear = False)
