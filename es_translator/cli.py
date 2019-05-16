@@ -7,7 +7,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from es_translator.apertium import Apertium
 from es_translator.es import TranslatedHit
-from es_translator.logger import logger
+from es_translator.logger import logger, add_sysload_handler
 from multiprocessing import Pool
 
 def print_flush(str):
@@ -62,7 +62,13 @@ def grouper(iterable, n):
 @click.option('--scan-scroll', help='Scroll duration (set to higher value if you\'re processing a lot of documents)', default="5m")
 @click.option('--dry-run', help='Don\'t save anything in Elasticsearch', is_flag=True, default=False)
 @click.option('--pool-size', help='Number of parallel processes to start', default=1)
+@click.option('--syslog-address', help='Syslog address', default='localhost')
+@click.option('--syslog-port', help='Syslog port', default=514)
+@click.option('--syslog-facility', help='Syslog facility', default='local7')
 def main(**options):
+    # Configure syslog
+    add_sysload_handler(options['syslog_address'], options['syslog_port'], options['syslog_facility'])
+
     with print_done('Instantiating Apertium'):
         apertium = Apertium(options['source_language'], options['target_language'], options['intermediary_language'], options['data_dir'])
     # Build the search
@@ -73,12 +79,11 @@ def main(**options):
         search = search.query("query_string", query=options['query'])
 
     total_hits = search.execute().hits.total
-    bar_label =  'Translating %s document(s)' % total_hits
     # Add missing field and change the scroll duration
     search = search.source([options['source_field'], options['target_field'], '_routing'])
     search = search.params(scroll=options['scan_scroll'])
 
-    with print_done(bar_label):
+    with print_done('Translating %s document(s)' % total_hits):
         # Use scrolling mecanism from Elasticsearch to iterate over each result
         # and we group search result in bucket of the size of the pool
         for group_index, hit_group in enumerate(grouper(search.scan(), options['pool_size'])):
