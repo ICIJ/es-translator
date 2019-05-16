@@ -31,7 +31,7 @@ def translate_hit(hit, apertium, options, index):
     logger.info('Translating doc %s (%s)' % (index, hit.meta.id))
     # Extract the value from a dict to avoid failing when the field is missing
     translated_hit = TranslatedHit(hit, options['source_field'], options['target_field'])
-    translated_hit.add_translation(apertium)
+    # translated_hit.add_translation(apertium)
     logger.info('Translated doc %s (%s)' % (index, hit.meta.id))
     # Skip on dry run
     if not options['dry_run']:
@@ -89,5 +89,8 @@ def main(**options):
         for group_index, hit_group in enumerate(grouper(search.scan(), options['pool_size'])):
             # We create a pool
             with Pool(options['pool_size']) as p:
-                hit_group = ([hit, apertium, options, group_index + hit_index] for hit_index, hit in enumerate(hit_group))
+                group_offset = group_index * options['pool_size']
+                hit_group = [[hit, apertium, options, group_offset + hit_index] for hit_index, hit in enumerate(hit_group)]
                 p.starmap(translate_hit, hit_group)
+
+    logger.info('Done!')
