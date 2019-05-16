@@ -31,7 +31,7 @@ def translate_hit(hit, apertium, options, index):
     logger.info('Translating doc %s (%s)' % (index, hit.meta.id))
     # Extract the value from a dict to avoid failing when the field is missing
     translated_hit = TranslatedHit(hit, options['source_field'], options['target_field'])
-    # translated_hit.add_translation(apertium)
+    translated_hit.add_translation(apertium)
     logger.info('Translated doc %s (%s)' % (index, hit.meta.id))
     # Skip on dry run
     if not options['dry_run']:
