@@ -84,11 +84,11 @@ def main(**options):
     search = search.params(scroll=options['scan_scroll'])
 
     with print_done('Translating %s document(s)' % total_hits):
-        # Use scrolling mecanism from Elasticsearch to iterate over each result
-        # and we group search result in bucket of the size of the pool
-        for group_index, hit_group in enumerate(grouper(search.scan(), options['pool_size'])):
-            # We create a pool
-            with Pool(options['pool_size']) as p:
+        # We create a pool
+        with Pool(options['pool_size']) as p:
+            # Use scrolling mecanism from Elasticsearch to iterate over each result
+            # and we group search result in bucket of the size of the pool
+            for group_index, hit_group in enumerate(grouper(search.scan(), options['pool_size'])):
                 group_offset = group_index * options['pool_size']
                 hit_group = [[hit, apertium, options, group_offset + hit_index] for hit_index, hit in enumerate(hit_group)]
                 p.starmap(translate_hit, hit_group)
