@@ -16,6 +16,7 @@ from es_translator.logger import add_sysload_handler
 @click.option('--scan-scroll', help='Scroll duration (set to higher value if you\'re processing a lot of documents)', default="5m")
 @click.option('--dry-run', help='Don\'t save anything in Elasticsearch', is_flag=True, default=False)
 @click.option('--pool-size', help='Number of parallel processes to start', default=1)
+@click.option('--pool-timeout', help='Timeout to add a translation', default=60 * 30)
 @click.option('--syslog-address', help='Syslog address', default='localhost')
 @click.option('--syslog-port', help='Syslog port', default=514)
 @click.option('--syslog-facility', help='Syslog facility', default='local7')
