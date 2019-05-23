@@ -183,6 +183,6 @@ class Apertium:
                 temp_input_file.writelines(input)
                 temp_input_file.seek(0)
                 input_translated = apertium('-ud', self.pack_dir, pair, temp_input_file.name)
-        except ErrorReturnCode:
+        except ErrorReturnCode as e:
             raise Exception('Unable to translate this string.')
         return str(input_translated)

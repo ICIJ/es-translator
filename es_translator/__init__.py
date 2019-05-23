@@ -22,6 +22,7 @@ def translation_worker(es_translator, hit, index):
             translated_hit.save(client)
             logger.info('Saved translation for doc %s (%s)' % (index, hit.meta.id))
     except Exception as e:
+        print(e)
         logger.warning('Unable to translate doc %s (%s)' % (index, hit.meta.id))
 
 class EsTranslator:
@@ -42,7 +43,7 @@ class EsTranslator:
     def start(self):
         with self.print_done('Instantiating Apertium'):
             self.apertium = self.init_apertium()
-            
+
         with self.print_done('Translating %s document(s)' % self.search().execute().hits.total):
             # Add missing field and change the scroll duration
             search = self.search()
