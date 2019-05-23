@@ -22,7 +22,6 @@ def translation_worker(es_translator, hit, index):
             translated_hit.save(client)
             logger.info('Saved translation for doc %s (%s)' % (index, hit.meta.id))
     except Exception as e:
-        print(e)
         logger.warning('Unable to translate doc %s (%s)' % (index, hit.meta.id))
 
 class EsTranslator:

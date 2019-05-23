@@ -3,7 +3,7 @@ from es_translator.logger import logger
 from fileinput import FileInput
 from functools import lru_cache
 from glob import glob
-from os.path import basename, join, isfile, dirname
+from os.path import basename, join, isfile, dirname, abspath
 from sh import dpkg_deb, mkdir, pushd, cp, rm, sed
 from tempfile import mkdtemp
 from urllib import request
@@ -14,7 +14,7 @@ PACKAGES_FILE_URL = "%s/dists/bionic/main/binary-amd64/Packages" % REPOSITORY_UR
 class ApertiumRepository:
     def __init__(self, cache_dir = None):
         # Create a temporary pack dir (if needed)
-        self.cache_dir = cache_dir or mkdtemp()
+        self.cache_dir = abspath(cache_dir) or mkdtemp()
 
     @property
     @lru_cache()

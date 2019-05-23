@@ -4,7 +4,7 @@ from es_translator.logger import logger
 from tempfile import mkdtemp, NamedTemporaryFile
 from functools import lru_cache
 from pycountry import languages
-from os.path import join, isdir
+from os.path import join, isdir, abspath
 from glob import glob
 from sh import apertium, apertium_get, pushd, mkdir, cp, grep, ErrorReturnCode
 
@@ -14,7 +14,7 @@ class Apertium:
         self.target = target
         self.intermediary = intermediary
         # Create a temporary pack dir (if needed)
-        self.pack_dir = pack_dir or mkdtemp()
+        self.pack_dir = abspath(pack_dir) or mkdtemp()
         # A class to download necessary pair package
         self.repository = ApertiumRepository(self.pack_dir)
         # Raise an exception if the language pair is unkown

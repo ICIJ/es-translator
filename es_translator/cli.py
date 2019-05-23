@@ -12,7 +12,7 @@ from es_translator.logger import add_sysload_handler
 @click.option('--source-field', help='Document field to translate', default="content")
 @click.option('--target-field', help='Document field to translate', default="content_translated")
 @click.option('--query-string', help='Search query string to filter result')
-@click.option('--data-dir', help='Path to the directory where to language model will be downloaded')
+@click.option('--data-dir', help='Path to the directory where to language model will be downloaded', type=click.Path(exists=True, dir_okay=True, writable=True, readable=True))
 @click.option('--scan-scroll', help='Scroll duration (set to higher value if you\'re processing a lot of documents)', default="5m")
 @click.option('--dry-run', help='Don\'t save anything in Elasticsearch', is_flag=True, default=False)
 @click.option('--pool-size', help='Number of parallel processes to start', default=1)
