@@ -19,13 +19,14 @@ Options:
                                 be calculated automaticly.
   --source-field TEXT           Document field to translate
   --target-field TEXT           Document field to translate
-  --query TEXT                  Search query string to filter result
-  --data-dir TEXT               Path to the directory where to language model
+  --query-string TEXT           Search query string to filter result
+  --data-dir PATH               Path to the directory where to language model
                                 will be downloaded
   --scan-scroll TEXT            Scroll duration (set to higher value if you're
                                 processing a lot of documents)
   --dry-run                     Don't save anything in Elasticsearch
   --pool-size INTEGER           Number of parallel processes to start
+  --pool-timeout INTEGER        Timeout to add a translation
   --syslog-address TEXT         Syslog address
   --syslog-port INTEGER         Syslog port
   --syslog-facility TEXT        Syslog facility
