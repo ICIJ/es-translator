@@ -19,11 +19,9 @@ run:
 		. $(VIRTUALENV)bin/activate; FLASK_ENV=development flask run --host=0.0.0.0 --port=5050
 
 minor:
-		$(SET_CURRENT_VERSION)
 		. $(VIRTUALENV)bin/activate; bumpversion --commit --tag --current-version ${CURRENT_VERSION} minor _version.py
 
 major:
-		$(SET_CURRENT_VERSION)
 		. $(VIRTUALENV)bin/activate; bumpversion --commit --tag --current-version ${CURRENT_VERSION} major _version.py
 
 patch:
@@ -38,7 +36,7 @@ docker-build:
 		docker build -t $(DOCKER_NAME) .
 
 docker-tag:
-		docker tag $(DOCKER_NAME) $(DOCKER_USER)/$(DOCKER_NAME):$(DOCKER_TAG)
+		docker tag $(DOCKER_NAME) $(DOCKER_USER)/$(DOCKER_NAME):${CURRENT_VERSION}
 
 docker-push:
 		docker push $(DOCKER_USER)/$(DOCKER_NAME):${CURRENT_VERSION}
