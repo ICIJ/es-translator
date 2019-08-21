@@ -15,9 +15,6 @@ install_virtualenv:
 install_pip:
 		. $(VIRTUALENV)bin/activate; pip install -r requirements.txt
 
-run:
-		. $(VIRTUALENV)bin/activate; FLASK_ENV=development flask run --host=0.0.0.0 --port=5050
-
 minor:
 		. $(VIRTUALENV)bin/activate; bumpversion --commit --tag --current-version ${CURRENT_VERSION} minor _version.py
 
