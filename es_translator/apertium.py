@@ -1,9 +1,9 @@
 import sys
 from es_translator.apertium_repository import ApertiumRepository
+from es_translator.alpha import to_alpha_2, to_alpha_3, to_name, to_alpha_3_pair
 from es_translator.logger import logger
 from tempfile import NamedTemporaryFile
 from functools import lru_cache
-from pycountry import languages
 from os.path import join, isdir, abspath
 from glob import glob
 from sh import apertium, apertium_get, pushd, mkdir, cp, grep, ErrorReturnCode
@@ -26,45 +26,41 @@ class Apertium:
         else:
             logger.info('Existing package(s) found for pair %s' % self.pair)
 
-    def to_alpha_2(self, code):
-        if len(code) == 3:
-            return languages.get(alpha_3 = code).alpha_2
-        else:
-            return code
-
-    def to_alpha_3(self, code):
-        if len(code) == 2:
-            return languages.get(alpha_2 = code).alpha_3
-        else:
-            return code
-
     @property
     def source_alpha_2(self):
-        return self.to_alpha_2(self.source)
+        return to_alpha_2(self.source)
 
     @property
     def source_alpha_3(self):
-        return self.to_alpha_3(self.source)
+        return to_alpha_3(self.source)
 
     @property
     def source_name(self):
-        return languages.get(alpha_2=self.source_alpha_2).name
+        return to_name(self.source_alpha_2)
 
     @property
     def target_alpha_2(self):
-        return self.to_alpha_2(self.target)
+        return to_alpha_2(self.target)
 
     @property
     def target_alpha_3(self):
-        return self.to_alpha_3(self.target)
+        return to_alpha_3(self.target)
+
+    @property
+    def intermediary_alpha_3(self):
+        return to_alpha_3(self.intermediary)
 
     @property
     def target_name(self):
-        return languages.get(alpha_2=self.target_alpha_2).name
+        return to_name(self.target_alpha_2)
 
     @property
     def pair(self):
         return '%s-%s' % (self.source, self.target)
+
+    @property
+    def pair_alpha_3(self):
+        return '%s-%s' % (self.source_alpha_3, self.target_alpha_3)
 
     @property
     def pair_inverse(self):
@@ -76,18 +72,18 @@ class Apertium:
 
     @property
     def is_pair_available(self):
-        return not self.intermediary and self.pair in self.available_pairs
+        return not self.intermediary and self.pair in self.local_pairs
 
     @property
     def pairs_pipeline(self):
         if self.intermediary:
             return [self.intermediary_source_pair, self.intermediary_target_pair]
         else:
-            return [self.pair]
+            return [self.pair_alpha_3]
 
     @property
     def intermediary_source_pair(self):
-        return '%s-%s' % (self.source, self.intermediary)
+        return '%s-%s' % (self.source_alpha_3, self.intermediary_alpha_3)
 
     @property
     def intermediary_source_pair_package(self):
@@ -95,7 +91,7 @@ class Apertium:
 
     @property
     def intermediary_target_pair(self):
-        return '%s-%s' % (self.intermediary, self.target)
+        return '%s-%s' % (self.intermediary_alpha_3, self.target_alpha_3)
 
     @property
     def intermediary_target_pair_package(self):
@@ -105,7 +101,7 @@ class Apertium:
     def intermediary_pairs(self):
         # Find the intermediary lang only if not given
         if self.intermediary is None:
-            trunk_packages = [ s.split('-') for s in self.pair_packages() ]
+            trunk_packages = [ s.split('-') for s in self.remote_pair_packages ]
             # Build a tree of languages and their children
             packages_tree = self.lang_tree(self.source, trunk_packages)
             # Find the first path between self.source (the root) and self.target in the given tree
@@ -114,36 +110,51 @@ class Apertium:
         return [ self.intermediary_source_pair, self.intermediary_target_pair ]
 
     @property
-    def available_pairs(self):
+    def local_pairs(self):
         output = apertium('-d', self.pack_dir, '-l').strip()
         return [ s.strip() for s in output.split('\n') ]
 
+    @property
     @lru_cache()
-    def pair_packages(self, module = 'trunk'):
-        lists = apertium_get('-l', module) if module is not None else apertium_get('-l')
-        return [ s.strip() for s in grep(lists, '-').strip().split('\n') ]
+    def remote_pair_packages(self, module = 'trunk'):
+        packages = self.repository.pair_packages
+        pairs = []
+        package_name_to_pair = lambda n: '-'.join(n.split('-')[-2:])
+        # Extract package within these two properties
+        for attr in ['Package', 'Provides']:
+            for package in packages:
+                for value in package.get(attr, '').split(','):
+                    pair = package_name_to_pair(value.strip())
+                    pairs.append(pair)
+        # Remove empty values
+        return [ p for p in pairs if p != '']
 
     def pair_to_pair_package(self, pair):
-        pair_parts = pair.split('-')
-        combinations = []
-        combinations.append('%s-%s' % (pair_parts[0], pair_parts[1]))
-        combinations.append('%s-%s' % (pair_parts[1], pair_parts[0]))
+        pair_inversed = '-'.join(pair.split('-')[::-1])
+        combinations = [to_alpha_3_pair(pair), to_alpha_3_pair(pair_inversed)]
         try:
-            return next(p for p in self.pair_packages() if p in combinations)
+            return next(p for p in self.remote_pair_packages if p in combinations)
         except StopIteration:
             return None
 
     def download_necessary_pairs(self):
         logger.info('Downloading necessary package(s) for %s' % self.pair)
-        if self.pair in self.pair_packages() or self.pair_inverse in self.pair_packages():
+        if self.any_pair_variant_in_packages:
             self.download_pair()
         else:
             self.download_intermediary_pairs()
 
     def download_pair(self, pair = None):
-        if pair is None: pair = self.pair
+        if pair is None:
+            pair = self.pair_alpha_3
+        else:
+            pair = to_alpha_3_pair(pair)
         # All commands must be run from the pack dir
         return self.repository.install_pair_package(pair)
+
+    @property
+    def any_pair_variant_in_packages(self):
+        return self.pair_alpha_3 in self.remote_pair_packages
 
     def download_intermediary_pairs(self):
         for pair in self.intermediary_pairs:
