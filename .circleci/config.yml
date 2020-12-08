@@ -1,6 +1,7 @@
 version: 2
 jobs:
   build:
+    working_directory: ~/repo
     docker:
       - image: circleci/python:3.8
       - image: docker.elastic.co/elasticsearch/elasticsearch:6.3.0
@@ -9,37 +10,25 @@ jobs:
           - "cluster.name=es-translator"
           - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
         name: elasticsearch
-
-    working_directory: ~/repo
-
     steps:
       - checkout
-
       - run:
           name: Add Apertium repository
           command: |
             wget https://apertium.projectjj.com/apt/install-nightly.sh -O - | sudo bash
-
       - run:
           name: Install Apertium
           command: |
             sudo apt install -f -qq -y apertium-all-dev dpkg-dev fakeroot lintian
-
       - run:
           name: Install Pipenv
           command: |
             (sudo apt update || /bin/true) && sudo apt install pipenv
-
       - run:
           name: Install dependencies
           command: |
             make install
-
       - run:
           name: Run tests
           command: |
             pipenv run nosetests --logging-level=WARNING
-
-      - store_artifacts:
-          path: test-reports
-          destination: test-reports
