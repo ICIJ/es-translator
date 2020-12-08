@@ -1,33 +1,28 @@
 DOCKER_USER := icij
 DOCKER_NAME := es-translator
-VIRTUALENV := venv/
 CURRENT_VERSION ?= `python -c "from _version import __version__ ; print(__version__)"`
 
 clean:
 		find . -name "*.pyc" -exec rm -rf {} \;
 
-install: install_virtualenv install_pip
-
-install_virtualenv:
-		# Check if venv folder is already created and create it
-		if [ ! -d venv ]; then virtualenv $(VIRTUALENV) --python=python3.5 --no-site-package --distribute; fi
+install: install_pip
 
 install_pip:
-		. $(VIRTUALENV)bin/activate; pip install -r requirements.txt
+		pipenv install
 
 minor:
-		. $(VIRTUALENV)bin/activate; bumpversion --commit --tag --current-version ${CURRENT_VERSION} minor _version.py
+		pipenv run bumpversion --commit --tag --current-version ${CURRENT_VERSION} minor _version.py
 
 major:
-		. $(VIRTUALENV)bin/activate; bumpversion --commit --tag --current-version ${CURRENT_VERSION} major _version.py
+		pipenv run bumpversion --commit --tag --current-version ${CURRENT_VERSION} major _version.py
 
 patch:
-		. $(VIRTUALENV)bin/activate; bumpversion --commit --tag --current-version ${CURRENT_VERSION} patch _version.py
+		pipenv run bumpversion --commit --tag --current-version ${CURRENT_VERSION} patch _version.py
 
 docker-publish: docker-build docker-tag docker-push
 
 docker-run:
-		docker run -p 3000:3000 -it $(DOCKER_NAME)
+		docker run -it $(DOCKER_NAME)
 
 docker-build:
 		docker build -t $(DOCKER_NAME) .

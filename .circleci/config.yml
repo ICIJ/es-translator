@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/python:3.6
+      - image: circleci/python:3.8
       - image: docker.elastic.co/elasticsearch/elasticsearch:6.3.0
         environment:
           - "discovery.type=single-node"
@@ -18,35 +18,27 @@ jobs:
       - run:
           name: Add Apertium repository
           command: |
-            wget https://apertium.projectjj.com/apt/install-release.sh -O - | sudo bash
+            wget https://apertium.projectjj.com/apt/install-nightly.sh -O - | sudo bash
 
       - run:
           name: Install Apertium
           command: |
-            sudo apt-get install -qq -y apertium-all-dev dpkg-dev fakeroot lintian
+            sudo apt install -f -qq -y apertium-all-dev dpkg-dev fakeroot lintian
 
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}
-          - v1-dependencies-
+      - run:
+          name: Install Pipenv
+          command: |
+            (sudo apt update || /bin/true) && sudo apt install pipenv
 
       - run:
           name: Install dependencies
           command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install -r requirements.txt nose
-
-      - save_cache:
-          paths:
-            - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
+            make install
 
       - run:
           name: Run tests
           command: |
-            . venv/bin/activate
-            nosetests --logging-level=WARNING
+            pipenv run nosetests --logging-level=WARNING
 
       - store_artifacts:
           path: test-reports

@@ -1,18 +1,16 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
-RUN apt-get update -qq && apt-get install -qq -y lsb-release wget python3 \
-  python3-pip python3-virtualenv dpkg-dev fakeroot lintian
+ENV TZ=US
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN apt update -qq && apt install -qq -y lsb-release wget python3 \
+  pipenv dpkg-dev fakeroot lintian
 
 WORKDIR /tmp
-ADD https://apertium.projectjj.com/apt/install-release.sh /tmp/install-release.sh
-RUN chmod +x ./install-release.sh && ./install-release.sh
+ADD https://apertium.projectjj.com/apt/install-nightly.sh /tmp/install-nightly.sh
+RUN chmod +x ./install-nightly.sh && ./install-nightly.sh
 
-RUN apt-get update -qq && apt-get install -qq -y apertium-all-dev
-
-# Configure python to use our virtual env
-ENV VIRTUAL_ENV=/opt/venv
-RUN python3 -m virtualenv --python=/usr/bin/python3 $VIRTUAL_ENV
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+RUN apt update -qq && apt install -f -qq -y apertium-all-dev
 
 # Python 3 surrogate unicode handling
 # @see https://click.palletsprojects.com/en/7.x/python3/
@@ -21,9 +19,10 @@ ENV LANG=C.UTF-8
 
 WORKDIR /opt/es-translator
 
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+COPY Pipfile .
+COPY Pipfile.lock .
+RUN pipenv install
 
 COPY . .
 
-CMD ["python", "es_translator.py", "--help"]
+CMD ["pipenv", "run", "python", "es_translator.py", "--help"]

@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+click = "==7.0"
+elasticsearch = "<8.0.0,>=7.0.0"
+elasticsearch-dsl = "<8.0.0,>=7.0.0"
+sh = "==1.12.13"
+pycountry = "==18.12.8"
+deb-pkg-tools = "==5.2"
+
+[dev-packages]
+bumpversion = "*"
+nose = "*"
+nose-watch = "*"
+pyyaml = "*"
+argh = "*"
+
+[requires]
+python_version = "3.8"
