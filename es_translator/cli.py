@@ -1,6 +1,6 @@
 import click
 
-from es_translator import EsTranslator
+from es_translator.es_translator import EsTranslator
 from es_translator.logger import add_sysload_handler
 from tempfile import mkdtemp
 
@@ -21,6 +21,9 @@ from tempfile import mkdtemp
 @click.option('--syslog-address', help='Syslog address', default='localhost')
 @click.option('--syslog-port', help='Syslog port', default=514)
 @click.option('--syslog-facility', help='Syslog facility', default='local7')
-def main(syslog_address, syslog_port, syslog_facility, **options):
+def cli(syslog_address, syslog_port, syslog_facility, **options):
     add_sysload_handler(syslog_address, syslog_port, syslog_facility)
     EsTranslator(options).start()
+
+if __name__ == '__main__':
+    cli()
