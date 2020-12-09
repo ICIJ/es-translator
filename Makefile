@@ -19,6 +19,10 @@ major:
 patch:
 		pipenv run bumpversion --commit --tag --current-version ${CURRENT_VERSION} patch _version.py
 
+distribute:
+		pipenv run python setup.py sdist bdist_wheel
+		pipenv run twine upload dist/*
+
 docker-publish: docker-build docker-tag docker-push
 
 docker-run:
