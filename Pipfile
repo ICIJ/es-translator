@@ -20,6 +20,7 @@ nose = "*"
 nose-watch = "*"
 pyyaml = "*"
 argh = "*"
+twine = "*"
 
 [requires]
 python_version = "3.8"
