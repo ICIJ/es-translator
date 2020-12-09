@@ -1,9 +1,10 @@
 DOCKER_USER := icij
 DOCKER_NAME := es-translator
-CURRENT_VERSION ?= `python -c "from _version import __version__ ; print(__version__)"`
+CURRENT_VERSION ?= `pipenv run python setup.py --version`
 
 clean:
 		find . -name "*.pyc" -exec rm -rf {} \;
+		rm -rf dist *.egg-info __pycache__
 
 install: install_pip
 
@@ -19,7 +20,7 @@ major:
 patch:
 		pipenv run bumpversion --commit --tag --current-version ${CURRENT_VERSION} patch _version.py
 
-distribute:
+distribute: clean
 		pipenv run python setup.py sdist bdist_wheel
 		pipenv run twine upload dist/*
 
