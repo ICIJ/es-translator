@@ -5,8 +5,7 @@
 A lazy yet bulletproof machine translation tool for Elastichsearch.
 
 ```
-$ python es_translator.py --help                                                                                                                                                                   
-Usage: es_translator.py [OPTIONS]
+Usage: es-translator [OPTIONS]
 
 Options:
   --url TEXT                    Elastichsearch URL  [required]
@@ -18,7 +17,8 @@ Options:
                                 and the target. If none is provided this will
                                 be calculated automatically.
   --source-field TEXT           Document field to translate
-  --target-field TEXT           Document field where the translations are stored
+  --target-field TEXT           Document field where the translations are
+                                stored
   --query-string TEXT           Search query string to filter result
   --data-dir PATH               Path to the directory where to language model
                                 will be downloaded
@@ -30,6 +30,8 @@ Options:
   --syslog-address TEXT         Syslog address
   --syslog-port INTEGER         Syslog port
   --syslog-facility TEXT        Syslog facility
+  --stdout-loglevel TEXT        Change the default log level for stdout error
+                                handler
   --help                        Show this message and exit.
 ```
 
