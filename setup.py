@@ -9,8 +9,6 @@ if py_version < (3, 6):
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-print(find_packages())
-
 setup(name='es-translator',
       version='1.0.3',
       packages=find_packages(),
