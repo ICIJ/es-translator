@@ -24,5 +24,6 @@ COPY Pipfile.lock .
 RUN pipenv install
 
 COPY . .
+RUN pipenv run python setup.py install
 
-CMD ["pipenv", "run", "python", "es_translator.py", "--help"]
+CMD ["pipenv", "run", "es-translator", "--help"]
