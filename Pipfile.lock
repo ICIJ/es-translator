@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "6e7b8ca6d3e7b8b575a580aa9d21561f153f09e5298e954adbb87bc37c693b8c"
+            "sha256": "7dcfad89697e6563140032865fc992a287d9fc3c65ce20793543d3da257e4e5d"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -131,7 +131,6 @@
         },
         "python-debian": {
             "hashes": [
-                "sha256:9175c8377dcfbb8bd0704272e3955620991d6d5c45a05aef99fe7211971bd271",
                 "sha256:a1f89336d7675a56cdd92fa90cd8c00b9178dabcc6d3e08a397e80eca2b855f3",
                 "sha256:a352bb5f9ef19b0272078f516ee0ec42b05e90ac85651d87c10e7041550dcc1d"
             ],
@@ -162,11 +161,11 @@
         },
         "urllib3": {
             "hashes": [
-                "sha256:8ed6d5c1ff9d6ba84677310060d6a3a78ca3072ce0684cb3c645023009c114b1",
-                "sha256:b14486978518ca0901a76ba973d7821047409d7f726f22156b24e83fd71382a5"
+                "sha256:4c291ca23bbb55c76518905869ef34bdd5f0e46af7afe6861e8375643ffee1a0",
+                "sha256:9a247273df709c4fedb38c711e44292304f73f39ab01beda9f6b9fc375669ac3"
             ],
             "index": "pypi",
-            "version": "==1.21.1"
+            "version": "==1.24.2"
         },
         "verboselogs": {
             "hashes": [
@@ -453,11 +452,11 @@
         },
         "urllib3": {
             "hashes": [
-                "sha256:8ed6d5c1ff9d6ba84677310060d6a3a78ca3072ce0684cb3c645023009c114b1",
-                "sha256:b14486978518ca0901a76ba973d7821047409d7f726f22156b24e83fd71382a5"
+                "sha256:4c291ca23bbb55c76518905869ef34bdd5f0e46af7afe6861e8375643ffee1a0",
+                "sha256:9a247273df709c4fedb38c711e44292304f73f39ab01beda9f6b9fc375669ac3"
             ],
             "index": "pypi",
-            "version": "==1.21.1"
+            "version": "==1.24.2"
         },
         "watchdog": {
             "hashes": [
