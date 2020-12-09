@@ -39,6 +39,7 @@ setup(name='es-translator',
         'deb-pkg-tools==5.2',
         'nose==1.3.7',
         'urllib3==1.25.10',
+        'tqdm==4.54.1',
       ],
       python_requires='>=3.6',
       entry_points='''
