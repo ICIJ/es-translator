@@ -1,8 +1,17 @@
 import click
-
+import logging
 from es_translator.es_translator import EsTranslator
-from es_translator.logger import add_sysload_handler
+from es_translator.logger import add_syslog_handler, add_stdout_handler
 from tempfile import mkdtemp
+
+
+def validate_loglevel(ctx, param, value):
+    try:
+        if isinstance(value, str):
+            return getattr(logging, value)
+        return int(value)
+    except (AttributeError, ValueError):
+        raise click.BadParameter('must be a valid log level (CRITICAL, ERROR, WARNING, INFO, DEBUG or NOTSET)')
 
 @click.command()
 @click.option('--url', help='Elastichsearch URL', required=True)
@@ -21,8 +30,12 @@ from tempfile import mkdtemp
 @click.option('--syslog-address', help='Syslog address', default='localhost')
 @click.option('--syslog-port', help='Syslog port', default=514)
 @click.option('--syslog-facility', help='Syslog facility', default='local7')
-def cli(syslog_address, syslog_port, syslog_facility, **options):
-    add_sysload_handler(syslog_address, syslog_port, syslog_facility)
+@click.option('--stdout-loglevel', help='Change the default log level for stdout error handler', default='ERROR',
+              callback=validate_loglevel)
+def cli(syslog_address, syslog_port, syslog_facility, stdout_loglevel, **options):
+    # Configure Syslog handler
+    add_syslog_handler(syslog_address, syslog_port, syslog_facility)
+    add_stdout_handler(stdout_loglevel)
     EsTranslator(options).start()
 
 if __name__ == '__main__':
