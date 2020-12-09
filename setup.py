@@ -10,7 +10,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='es-translator',
-      version='1.1.1',
+      version='1.1.2',
       packages=find_packages(),
       description="A lazy yet bulletproof machine translation tool for Elastichsearch.",
       long_description=long_description,
