@@ -12,6 +12,7 @@ pycountry = "==18.12.8"
 deb-pkg-tools = "==5.2"
 nose = "==1.3.7"
 coloredlogs = "*"
+urllib3 = "==1.21.1"
 
 [dev-packages]
 bumpversion = "*"
