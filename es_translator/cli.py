@@ -17,6 +17,12 @@ def validate_loglevel(ctx, param, value):
     except (AttributeError, ValueError):
         raise click.BadParameter('must be a valid log level (CRITICAL, ERROR, WARNING, INFO, DEBUG or NOTSET)')
 
+def validate_progressbar(ctx, param, value):
+    # If no value given, we activate the progress bar only when the
+    # stdout_loglevel value is higher than INFO (20)
+    return value if value is not None else ctx.params['stdout_loglevel'] > 20
+
+
 @click.command()
 @click.option('--url', help='Elastichsearch URL', required=True)
 @click.option('--index', help='Elastichsearch Index', required=True)
@@ -31,15 +37,18 @@ def validate_loglevel(ctx, param, value):
 @click.option('--dry-run', help='Don\'t save anything in Elasticsearch', is_flag=True, default=False)
 @click.option('--pool-size', help='Number of parallel processes to start', default=1)
 @click.option('--pool-timeout', help='Timeout to add a translation', default=60 * 30)
+@click.option('--throttle', help='Throttle between each translation (in ms)', default=0)
 @click.option('--syslog-address', help='Syslog address', default='localhost')
 @click.option('--syslog-port', help='Syslog port', default=514)
 @click.option('--syslog-facility', help='Syslog facility', default='local7')
 @click.option('--stdout-loglevel', help='Change the default log level for stdout error handler', default='ERROR',
               callback=validate_loglevel)
-def translate(syslog_address, syslog_port, syslog_facility, stdout_loglevel, **options):
+@click.option('--progressbar/--no-progressbar', help='Display a progressbar', default=None,
+            callback=validate_progressbar)
+def translate(syslog_address, syslog_port, syslog_facility, **options):
     # Configure Syslog handler
     add_syslog_handler(syslog_address, syslog_port, syslog_facility)
-    add_stdout_handler(stdout_loglevel)
+    add_stdout_handler(options['stdout_loglevel'])
     # We pass all options to EsTranslator then we start the translation
     # from Elasticsearch. This will download required pairs if needed.
     EsTranslator(options).start()
@@ -53,10 +62,10 @@ def translate(syslog_address, syslog_port, syslog_facility, stdout_loglevel, **o
 @click.option('--syslog-facility', help='Syslog facility', default='local7')
 @click.option('--stdout-loglevel', help='Change the default log level for stdout error handler', default='ERROR',
               callback=validate_loglevel)
-def pairs(data_dir, local, syslog_address, syslog_port, syslog_facility, stdout_loglevel, **options):
+def pairs(data_dir, local, syslog_address, syslog_port, syslog_facility, **options):
     # Configure Syslog handler
     add_syslog_handler(syslog_address, syslog_port, syslog_facility)
-    add_stdout_handler(stdout_loglevel)
+    add_stdout_handler(options['stdout_loglevel'])
     # Only the data-dir is needed to construct the Apertium instance, then
     # we just need to print the pair
     Pairs(data_dir, local).print_pairs()

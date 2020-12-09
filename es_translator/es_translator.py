@@ -1,9 +1,12 @@
 import sys
+from coloredlogs import StandardErrorHandler
 from contextlib import contextmanager
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from multiprocessing import Pool, JoinableQueue
 from queue import Full
+from tqdm import tqdm
+from time import sleep
 # Module from the same package
 from es_translator.apertium import Apertium
 from es_translator.es import TranslatedHit
@@ -13,7 +16,7 @@ from es_translator.logger import logger
 def translation_worker(queue):
     while True:
         try:
-            es_translator, hit, index = queue.get(True)
+            es_translator, hit, index, throttle = queue.get(True)
             logger.info('Translating doc %s (%s)' % (index, hit.meta.id))
             translated_hit = TranslatedHit(hit, es_translator.source_field, es_translator.target_field)
             translated_hit.add_translation(es_translator.apertium)
@@ -25,6 +28,7 @@ def translation_worker(queue):
                 translated_hit.save(client)
                 logger.info('Saved translation for doc %s (%s)' % (index, hit.meta.id))
             queue.task_done()
+            sleep(throttle / 1000)
         except Exception as error:
             logger.warning('Unable to translate doc %s (%s)' % (index, hit.meta.id))
             logger.warning(error)
@@ -45,23 +49,33 @@ class EsTranslator:
         self.dry_run = options['dry_run']
         self.pool_size = options['pool_size']
         self.pool_timeout = options['pool_timeout']
+        self.throttle = options['throttle']
+        self.progressbar = options['progressbar']
+
+    @property
+    def no_progressbar(self):
+        return not self.progressbar
 
     def start(self):
         with self.print_done('Instantiating Apertium'):
             self.apertium = self.init_apertium()
 
-        with self.print_done('Translating %s document(s)' % self.search().execute().hits.total):
+        total = self.search().execute().hits.total
+        desc = 'Translating %s document(s)' % total
+
+        with self.print_done(desc):
             # Add missing field and change the scroll duration
             search = self.search()
             search = search.source([self.source_field, self.target_field, '_routing'])
             search = search.params(scroll=self.scan_scroll)
-
+            # Create a queue that is able to translate documents in parallel
             translation_queue = JoinableQueue(self.pool_size)
             # We create a pool
             with Pool(self.pool_size, translation_worker, (translation_queue,)) as pool:
-                # Use scrolling mecanism from Elasticsearch to iterate over each result
-                for index, hit in enumerate(search.scan()):
-                    translation_queue.put((self, hit, index), True, self.pool_timeout)
+                documents = search.scan()
+                pbar = tqdm(documents, desc=desc, total=total, leave=False, disable=self.no_progressbar)
+                for index, hit in enumerate(pbar):
+                    translation_queue.put((self, hit, index, self.throttle), True, self.pool_timeout)
                 translation_queue.join()
 
     def search(self):
@@ -79,19 +93,28 @@ class EsTranslator:
         sys.stdout.write('\r{0}'.format(str))
         sys.stdout.flush()
 
+    @property
+    def stdout_loglevel(self):
+        handler = next(h for h in logger.handlers if isinstance(h, StandardErrorHandler))
+        return getattr(handler, 'level', 0)
+
     @contextmanager
     def print_done(self, str, quiet = False):
         logger.info(str)
-        str = '\r%s...' % str
-        self.print_flush(str)
-        try:
+        # Avoid conflicting with a high log level
+        if self.stdout_loglevel > 20:
+            str = '\r%s...' % str
+            self.print_flush(str)
+            try:
+                yield
+                print('{0} \033[92mdone\033[0m'.format(str))
+            except Full:
+                logger.error('Timeout reached (%ss).' % self.pool_timeout)
+                print('{0} \033[91merror\033[0m'.format(str))
+            except Exception as error:
+                logger.error(error, exc_info=True)
+                print('{0} \033[91merror\033[0m'.format(str))
+                if not quiet: raise error
+                sys.exit(1)
+        else:
             yield
-            print('{0} \033[92mdone\033[0m'.format(str))
-        except Full:
-            logger.error('Timeout reached (%ss).' % self.pool_timeout)
-            print('{0} \033[91merror\033[0m'.format(str))
-        except Exception as error:
-            logger.error(error, exc_info=True)
-            print('{0} \033[91merror\033[0m'.format(str))
-            if not quiet: raise error
-            sys.exit(1)
