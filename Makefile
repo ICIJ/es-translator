@@ -12,13 +12,13 @@ install_pip:
 		pipenv install
 
 minor:
-		pipenv run bumpversion --commit --tag --current-version ${CURRENT_VERSION} minor _version.py
+		pipenv run bumpversion --commit --tag --current-version ${CURRENT_VERSION} minor setup.py
 
 major:
-		pipenv run bumpversion --commit --tag --current-version ${CURRENT_VERSION} major _version.py
+		pipenv run bumpversion --commit --tag --current-version ${CURRENT_VERSION} major setup.py
 
 patch:
-		pipenv run bumpversion --commit --tag --current-version ${CURRENT_VERSION} patch _version.py
+		pipenv run bumpversion --commit --tag --current-version ${CURRENT_VERSION} patch setup.py
 
 distribute: clean
 		pipenv run python setup.py sdist bdist_wheel
