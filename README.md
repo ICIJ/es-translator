@@ -41,7 +41,6 @@ Install Apertium:
 
 ```
 wget https://apertium.projectjj.com/apt/install-nightly.sh -O - | sudo bash
-sudo apt update
 sudo apt install apertium-all-dev
 ```
 
