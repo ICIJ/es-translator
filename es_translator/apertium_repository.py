@@ -1,13 +1,14 @@
 from deb_pkg_tools.control import deb822_from_string
-from es_translator.alpha import to_alpha_2, to_alpha_3, to_alpha_3_pair
-from es_translator.logger import logger
-from es_translator.symlink import create_symlink
 from fileinput import FileInput
 from functools import lru_cache
 from glob import glob
 from os.path import basename, join, isfile, islink, dirname, abspath
 from sh import dpkg_deb, mkdir, pushd, cp, rm, sed
 from urllib import request
+# Module from the same package
+from es_translator.alpha import to_alpha_2, to_alpha_3, to_alpha_3_pair
+from es_translator.logger import logger
+from es_translator.symlink import create_symlink
 
 REPOSITORY_URL = "https://apertium.projectjj.com/apt/nightly"
 PACKAGES_FILE_URL = "%s/dists/focal/main/binary-amd64/Packages" % REPOSITORY_URL

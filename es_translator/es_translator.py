@@ -2,11 +2,12 @@ import sys
 from contextlib import contextmanager
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
+from multiprocessing import Pool, JoinableQueue
+from queue import Full
+# Module from the same package
 from es_translator.apertium import Apertium
 from es_translator.es import TranslatedHit
 from es_translator.logger import logger
-from multiprocessing import Pool, JoinableQueue
-from queue import Full
 
 
 def translation_worker(queue):

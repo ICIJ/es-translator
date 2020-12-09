@@ -1,15 +1,16 @@
 import sys
-from es_translator.apertium_repository import ApertiumRepository
-from es_translator.alpha import to_alpha_2, to_alpha_3, to_name, to_alpha_3_pair
-from es_translator.logger import logger
 from tempfile import NamedTemporaryFile
 from functools import lru_cache
 from os.path import join, isdir, abspath
 from glob import glob
 from sh import apertium, apertium_get, pushd, mkdir, cp, grep, ErrorReturnCode
+# Module from the same package
+from es_translator.apertium_repository import ApertiumRepository
+from es_translator.alpha import to_alpha_2, to_alpha_3, to_name, to_alpha_3_pair
+from es_translator.logger import logger
 
 class Apertium:
-    def __init__(self, source, target, intermediary = None, pack_dir = None):
+    def __init__(self, source = None, target = None, intermediary = None, pack_dir = None):
         self.source = source
         self.target = target
         self.intermediary = intermediary
@@ -18,7 +19,7 @@ class Apertium:
         # A class to download necessary pair package
         self.repository = ApertiumRepository(self.pack_dir)
         # Raise an exception if the language pair is unkown
-        if not self.is_pair_available:
+        if not self.is_pair_available and self.has_pair:
             try:
                 self.download_necessary_pairs()
             except StopIteration:
@@ -75,6 +76,10 @@ class Apertium:
         return not self.intermediary and self.pair in self.local_pairs
 
     @property
+    def has_pair(self):
+        return self.source is not None and self.target is not None
+
+    @property
     def pairs_pipeline(self):
         if self.intermediary:
             return [self.intermediary_source_pair, self.intermediary_target_pair]
@@ -101,7 +106,7 @@ class Apertium:
     def intermediary_pairs(self):
         # Find the intermediary lang only if not given
         if self.intermediary is None:
-            trunk_packages = [ s.split('-') for s in self.remote_pair_packages ]
+            trunk_packages = [ s.split('-') for s in self.remote_pairs ]
             # Build a tree of languages and their children
             packages_tree = self.lang_tree(self.source, trunk_packages)
             # Find the first path between self.source (the root) and self.target in the given tree
@@ -116,7 +121,7 @@ class Apertium:
 
     @property
     @lru_cache()
-    def remote_pair_packages(self, module = 'trunk'):
+    def remote_pairs(self, module = 'trunk'):
         packages = self.repository.pair_packages
         pairs = []
         package_name_to_pair = lambda n: '-'.join(n.split('-')[-2:])
@@ -133,7 +138,7 @@ class Apertium:
         pair_inversed = '-'.join(pair.split('-')[::-1])
         combinations = [to_alpha_3_pair(pair), to_alpha_3_pair(pair_inversed)]
         try:
-            return next(p for p in self.remote_pair_packages if p in combinations)
+            return next(p for p in self.remote_pairs if p in combinations)
         except StopIteration:
             return None
 
@@ -154,7 +159,7 @@ class Apertium:
 
     @property
     def any_pair_variant_in_packages(self):
-        return self.pair_alpha_3 in self.remote_pair_packages
+        return self.pair_alpha_3 in self.remote_pairs
 
     def download_intermediary_pairs(self):
         for pair in self.intermediary_pairs:

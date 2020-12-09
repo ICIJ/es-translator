@@ -9,6 +9,8 @@ if py_version < (3, 6):
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+print(find_packages())
+
 setup(name='es-translator',
       version='1.0.3',
       packages=find_packages(),
@@ -43,5 +45,6 @@ setup(name='es-translator',
       python_requires='>=3.6',
       entry_points='''
         [console_scripts]
-        es-translator=es_translator.cli:cli
+        es-translator=es_translator.cli:translate
+        es-translator-pairs=es_translator.cli:pairs
     ''')

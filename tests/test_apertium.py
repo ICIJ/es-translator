@@ -25,7 +25,7 @@ class TestApertium(TestCase):
         self.assertIn('apertium-%s' % self.por2eng.intermediary_source_pair_package, os.listdir(pack_dir))
 
     def test_pair_packages_list(self):
-        self.assertTrue(all(len(p.split('-')) == 2 for p in self.eng2spa.remote_pair_packages))
+        self.assertTrue(all(len(p.split('-')) == 2 for p in self.eng2spa.remote_pairs))
 
     def test_source_properties(self):
         self.assertEqual(self.eng2spa.source, 'eng')
