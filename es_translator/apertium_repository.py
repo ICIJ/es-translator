@@ -2,8 +2,8 @@ from deb_pkg_tools.control import deb822_from_string
 from fileinput import FileInput
 from functools import lru_cache
 from glob import glob
-from os.path import basename, join, isfile, islink, dirname, abspath
-from sh import dpkg_deb, mkdir, pushd, cp, rm, sed
+from os.path import basename, join, isfile, dirname, abspath
+from sh import dpkg_deb, mkdir, pushd, cp, rm
 from urllib import request
 # Module from the same package
 from es_translator.alpha import to_alpha_2, to_alpha_3, to_alpha_3_pair

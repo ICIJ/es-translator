@@ -1,7 +1,5 @@
 import click
 import logging
-import sys
-import os
 
 from es_translator import EsTranslator
 from tempfile import mkdtemp

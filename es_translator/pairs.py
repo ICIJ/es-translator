@@ -1,5 +1,4 @@
 # Module from the same package
-from es_translator.logger import add_syslog_handler, add_stdout_handler
 from es_translator.apertium import Apertium
 
 class Pairs:

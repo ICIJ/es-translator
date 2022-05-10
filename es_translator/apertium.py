@@ -1,9 +1,7 @@
-import sys
 from tempfile import NamedTemporaryFile
 from functools import lru_cache
-from os.path import join, isdir, abspath
-from glob import glob
-from sh import apertium, apertium_get, pushd, mkdir, cp, grep, ErrorReturnCode
+from os.path import abspath
+from sh import apertium, ErrorReturnCode
 # Module from the same package
 from es_translator.apertium_repository import ApertiumRepository
 from es_translator.alpha import to_alpha_2, to_alpha_3, to_name, to_alpha_3_pair
