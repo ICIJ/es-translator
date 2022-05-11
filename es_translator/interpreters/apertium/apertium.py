@@ -1,19 +1,15 @@
 from tempfile import NamedTemporaryFile
 from functools import lru_cache
-from os.path import abspath
 from sh import apertium, ErrorReturnCode
 # Module from the same package
 from .repository import ApertiumRepository
-from ...alpha import to_alpha_2, to_alpha_3, to_name, to_alpha_3_pair
+from ..abstract import AbstractInterpreter
+from ...alpha import to_alpha_3_pair
 from ...logger import logger
 
-class Apertium:
+class Apertium(AbstractInterpreter):
     def __init__(self, source = None, target = None, intermediary = None, pack_dir = None):
-        self.source = source
-        self.target = target
-        self.intermediary = intermediary
-        # Create a temporary pack dir (if needed)
-        self.pack_dir = abspath(pack_dir)
+        super().__init__(source, target, intermediary, pack_dir)
         # A class to download necessary pair package
         self.repository = ApertiumRepository(self.pack_dir)
         # Raise an exception if the language pair is unkown
@@ -30,56 +26,12 @@ class Apertium:
         return 'APERTIUM'
 
     @property
-    def source_alpha_2(self):
-        return to_alpha_2(self.source)
-
-    @property
-    def source_alpha_3(self):
-        return to_alpha_3(self.source)
-
-    @property
-    def source_name(self):
-        return to_name(self.source_alpha_2)
-
-    @property
-    def target_alpha_2(self):
-        return to_alpha_2(self.target)
-
-    @property
-    def target_alpha_3(self):
-        return to_alpha_3(self.target)
-
-    @property
-    def intermediary_alpha_3(self):
-        return to_alpha_3(self.intermediary)
-
-    @property
-    def target_name(self):
-        return to_name(self.target_alpha_2)
-
-    @property
-    def pair(self):
-        return '%s-%s' % (self.source, self.target)
-
-    @property
-    def pair_alpha_3(self):
-        return '%s-%s' % (self.source_alpha_3, self.target_alpha_3)
-
-    @property
-    def pair_inverse(self):
-        return '%s-%s' % (self.target, self.source)
-
-    @property
     def pair_package(self):
         return self.pair_to_pair_package(self.pair)
 
     @property
     def is_pair_available(self):
         return not self.intermediary and self.pair in self.local_pairs
-
-    @property
-    def has_pair(self):
-        return self.source is not None and self.target is not None
 
     @property
     def pairs_pipeline(self):
