@@ -5,7 +5,7 @@ from es_translator import EsTranslator
 from tempfile import mkdtemp
 # Module from the same package
 from es_translator.logger import add_syslog_handler, add_stdout_handler
-from es_translator.pairs import Pairs
+from es_translator.interpreters.apertium.pairs import Pairs
 
 def validate_loglevel(ctx, param, value):
     try:

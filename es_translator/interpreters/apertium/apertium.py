@@ -3,9 +3,9 @@ from functools import lru_cache
 from os.path import abspath
 from sh import apertium, ErrorReturnCode
 # Module from the same package
-from es_translator.apertium_repository import ApertiumRepository
-from es_translator.alpha import to_alpha_2, to_alpha_3, to_name, to_alpha_3_pair
-from es_translator.logger import logger
+from .repository import ApertiumRepository
+from ...alpha import to_alpha_2, to_alpha_3, to_name, to_alpha_3_pair
+from ...logger import logger
 
 class Apertium:
     def __init__(self, source = None, target = None, intermediary = None, pack_dir = None):
@@ -24,6 +24,10 @@ class Apertium:
                 raise Exception('The pair is not available')
         else:
             logger.info('Existing package(s) found for pair %s' % self.pair)
+            
+    @property
+    def name(self):
+        return 'APERTIUM'
 
     @property
     def source_alpha_2(self):

@@ -8,7 +8,7 @@ from queue import Full
 from tqdm import tqdm
 from time import sleep
 # Module from the same package
-from es_translator.apertium import Apertium
+from es_translator.interpreters.apertium import Apertium
 from es_translator.es import TranslatedHit
 from es_translator.logger import logger
 
@@ -19,7 +19,7 @@ def translation_worker(queue):
             es_translator, hit, index, throttle = queue.get(True)
             logger.info('Translating doc %s (%s)' % (index, hit.meta.id))
             translated_hit = TranslatedHit(hit, es_translator.source_field, es_translator.target_field)
-            translated_hit.add_translation(es_translator.apertium)
+            translated_hit.add_translation(es_translator.interpreter)
             logger.info('Translated doc %s (%s)' % (index, hit.meta.id))
             # Skip on dry run
             if not es_translator.dry_run:
@@ -57,8 +57,8 @@ class EsTranslator:
         return not self.progressbar
 
     def start(self):
-        with self.print_done('Instantiating Apertium'):
-            self.apertium = self.init_apertium()
+        with self.print_done('Instantiating interpreter'):
+            self.interpretor = self.init_interpretor()
 
         total = self.search().execute().hits.total
         desc = 'Translating %s document(s)' % total
@@ -86,7 +86,7 @@ class EsTranslator:
             search = search.query("query_string", query=self.query_string)
         return search
 
-    def init_apertium(self):
+    def init_interpretor(self):
         return Apertium(self.source_language, self.target_language, self.intermediary_language, self.data_dir)
 
     def print_flush(self, str):

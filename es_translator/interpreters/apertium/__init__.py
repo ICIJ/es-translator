@@ -1,0 +1,1 @@
+from .apertium import Apertium

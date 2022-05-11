@@ -1,9 +1,9 @@
 import os
 from os.path import dirname
 
-from unittest import  TestCase
+from unittest import TestCase
 from tempfile import mkdtemp
-from es_translator.apertium import Apertium
+from es_translator.interpreters.apertium import Apertium
 
 root = lambda x: os.path.join(os.path.abspath(dirname(dirname(__file__))), x)
 # Use the .cache dir if it exists, or use a temporary dir

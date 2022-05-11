@@ -1,5 +1,5 @@
 # Module from the same package
-from es_translator.apertium import Apertium
+from .apertium import Apertium
 
 class Pairs:
     def __init__(self, data_dir, local = False):
