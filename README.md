@@ -51,6 +51,13 @@ sudo apt install pipenv
 make install
 ```
 
+On Ubuntu 22.04 some additional packages might be needed if you use the version from Ubuntu's repository:
+
+```
+sudo apt install cg3 apertium-get apertium-lex-tools
+```
+
+
 ## Installation (Docker)
 
 Nothing to do as long as you have Docker on your system:
