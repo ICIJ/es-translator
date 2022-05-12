@@ -38,6 +38,7 @@ class EsTranslator:
     def __init__(self, options):
         self.url = options['url']
         self.index = options['index']
+        self.Interpreter = options['interpreter']
         self.source_language = options['source_language']
         self.target_language = options['target_language']
         self.intermediary_language = options['intermediary_language']
@@ -58,9 +59,9 @@ class EsTranslator:
 
     def start(self):
         with self.print_done('Instantiating interpreter'):
-            self.interpretor = self.init_interpretor()
+            self.interpreter = self.init_interpreter()
 
-        total = self.search().execute().hits.total
+        total = self.search().execute().hits.total.value
         desc = 'Translating %s document(s)' % total
 
         with self.print_done(desc):
@@ -86,8 +87,8 @@ class EsTranslator:
             search = search.query("query_string", query=self.query_string)
         return search
 
-    def init_interpretor(self):
-        return Apertium(self.source_language, self.target_language, self.intermediary_language, self.data_dir)
+    def init_interpreter(self):
+        return self.Interpreter(self.source_language, self.target_language, self.intermediary_language, self.data_dir)
 
     def print_flush(self, str):
         sys.stdout.write('\r{0}'.format(str))

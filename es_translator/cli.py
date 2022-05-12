@@ -4,8 +4,10 @@ import logging
 from es_translator import EsTranslator
 from tempfile import mkdtemp
 # Module from the same package
-from es_translator.logger import add_syslog_handler, add_stdout_handler
+from es_translator.interpreters import Apertium
 from es_translator.interpreters.apertium.pairs import Pairs
+from es_translator.logger import add_syslog_handler, add_stdout_handler
+
 
 def validate_loglevel(ctx, param, value):
     try:
@@ -15,15 +17,26 @@ def validate_loglevel(ctx, param, value):
     except (AttributeError, ValueError):
         raise click.BadParameter('must be a valid log level (CRITICAL, ERROR, WARNING, INFO, DEBUG or NOTSET)')
 
+
 def validate_progressbar(ctx, param, value):
     # If no value given, we activate the progress bar only when the
     # stdout_loglevel value is higher than INFO (20)
     return value if value is not None else ctx.params['stdout_loglevel'] > 20
 
 
+def validate_interpreter(ctx, param, value):
+    interpreters = ( Apertium, )
+    for interpreter in interpreters:
+        if value.upper() == interpreter.name.upper():
+            return interpreter
+    names = (interpreter.name for interpreter in interpreters)
+    raise click.BadParameter('must be a valid interpreter name (%s)' % ''.join(names))
+
+
 @click.command()
 @click.option('--url', help='Elastichsearch URL', required=True)
 @click.option('--index', help='Elastichsearch Index', required=True)
+@click.option('--interpreter', help='Interpreter to use to perform the translation.', default='APERTIUM', callback=validate_interpreter)
 @click.option('--source-language', help='Source language to translate from', required=True, default=None)
 @click.option('--target-language', help='Target language to translate to', required=True, default=None)
 @click.option('--intermediary-language', help='An intermediary language to use when no translation is available between the source and the target. If none is provided this will be calculated automatically.')
