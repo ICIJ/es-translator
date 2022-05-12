@@ -5,6 +5,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from multiprocessing import Pool, JoinableQueue
 from queue import Full
+from os import path
 from tqdm import tqdm
 from time import sleep
 # Module from the same package
@@ -89,7 +90,8 @@ class EsTranslator:
         return search
 
     def init_interpreter(self):
-        return self.Interpreter(self.source_language, self.target_language, self.intermediary_language, self.data_dir)
+        pack_dir = path.join(self.data_dir, 'packs', self.Interpreter.name)
+        return self.Interpreter(self.source_language, self.target_language, self.intermediary_language, pack_dir)
 
     def print_flush(self, str):
         sys.stdout.write('\r{0}'.format(str))
