@@ -32,7 +32,7 @@ setup(name='es-translator',
       ],
       install_requires=[
         'click==8.1',
-        'elasticsearch>=7.17.0,<8.0.0',
+        'elasticsearch>=7.10,<7.11',
         'elasticsearch-dsl>=7.4.0,<8.0.0',
         'sh==1.14.2',
         'pycountry==22.3.5',
