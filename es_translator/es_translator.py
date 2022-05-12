@@ -38,7 +38,6 @@ class EsTranslator:
     def __init__(self, options):
         self.url = options['url']
         self.index = options['index']
-        self.Interpreter = options['interpreter']
         self.source_language = options['source_language']
         self.target_language = options['target_language']
         self.intermediary_language = options['intermediary_language']
@@ -52,6 +51,8 @@ class EsTranslator:
         self.pool_timeout = options['pool_timeout']
         self.throttle = options['throttle']
         self.progressbar = options['progressbar']
+        # The "interpreter" option is a class
+        self.Interpreter = options['interpreter']
 
     @property
     def no_progressbar(self):

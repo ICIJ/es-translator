@@ -4,7 +4,7 @@ import logging
 from es_translator import EsTranslator
 from tempfile import mkdtemp
 # Module from the same package
-from es_translator.interpreters import Apertium
+from es_translator.interpreters import Apertium, Argos
 from es_translator.interpreters.apertium.pairs import Pairs
 from es_translator.logger import add_syslog_handler, add_stdout_handler
 
@@ -25,7 +25,7 @@ def validate_progressbar(ctx, param, value):
 
 
 def validate_interpreter(ctx, param, value):
-    interpreters = ( Apertium, )
+    interpreters = ( Apertium, Argos, )
     for interpreter in interpreters:
         if value.upper() == interpreter.name.upper():
             return interpreter
