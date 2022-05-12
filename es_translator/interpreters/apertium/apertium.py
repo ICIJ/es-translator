@@ -8,6 +8,8 @@ from ...alpha import to_alpha_3_pair
 from ...logger import logger
 
 class Apertium(AbstractInterpreter):
+    name = 'APERTIUM'
+    
     def __init__(self, source = None, target = None, intermediary = None, pack_dir = None):
         super().__init__(source, target, intermediary, pack_dir)
         # A class to download necessary pair package
@@ -20,10 +22,6 @@ class Apertium(AbstractInterpreter):
                 raise Exception('The pair is not available')
         else:
             logger.info('Existing package(s) found for pair %s' % self.pair)
-            
-    @property
-    def name(self):
-        return 'APERTIUM'
 
     @property
     def pair_package(self):

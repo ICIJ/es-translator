@@ -1,1 +1,1 @@
-__all__ = ["apertium"]
+from .apertium import Apertium

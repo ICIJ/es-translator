@@ -4,17 +4,18 @@ from os.path import abspath
 from ..alpha import to_alpha_2, to_alpha_3, to_name
 
 class AbstractInterpreter(ABC):
+    name = 'ABSTRACT'
+    
     def __init__(self, source = None, target = None, intermediary = None, pack_dir = None):
         self.source = source
         self.target = target
         self.intermediary = intermediary
         # Create a temporary pack dir (if needed) to download language packs
-        self.pack_dir = abspath(pack_dir)
+        self.pack_dir = abspath(pack_dir)    
   
     @property
-    @abstractmethod
     def name(self):
-        return 'ABSTRACT' 
+        return self.__class__.name
     
     @property
     def source_alpha_2(self):
