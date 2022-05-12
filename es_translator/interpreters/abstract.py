@@ -11,7 +11,8 @@ class AbstractInterpreter(ABC):
         self.target = target
         self.intermediary = intermediary
         # Create a temporary pack dir (if needed) to download language packs
-        self.pack_dir = abspath(pack_dir)    
+        if pack_dir is not None:
+            self.pack_dir = abspath(pack_dir) 
   
     @property
     def name(self):

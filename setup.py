@@ -40,7 +40,7 @@ setup(name='es-translator',
         'nose==1.3.7',
         'urllib3==1.26.9',
         'tqdm==4.54.1',
-        'argostranslate==1'
+        'argostranslate==1.6.1'
       ],
       python_requires='>=3.6',
       entry_points='''

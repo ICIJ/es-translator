@@ -1,13 +1,15 @@
 import os
-from os.path import dirname, isfile, isdir
+from os.path import isfile, isdir
 
 from unittest import TestCase
 from tempfile import mkdtemp
 from es_translator.interpreters.apertium.repository import ApertiumRepository
 
-root = lambda x: os.path.join(os.path.abspath(dirname(dirname(__file__))), x)
+
+here = lambda: os.path.dirname(os.path.abspath(__file__))
+root = lambda x: os.path.abspath(os.path.join(here(), '../../../', x))
 # Use the .cache dir if it exists, or use a temporary dir
-cache_dir = root('.cache') if os.path.isdir(root('.cache')) else mkdtemp()
+cache_dir = root('.cache/APERTIUM') if os.path.isdir(root('.cache')) else mkdtemp()
 
 class TestApertium(TestCase):
     @classmethod

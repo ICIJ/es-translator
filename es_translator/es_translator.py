@@ -60,7 +60,7 @@ class EsTranslator:
         return not self.progressbar
 
     def start(self):
-        with self.print_done('Instantiating interpreter'):
+        with self.print_done('Instantiating %s interpreter' % self.Interpreter.name):
             self.interpreter = self.init_interpreter()
 
         total = self.search().execute().hits.total.value
