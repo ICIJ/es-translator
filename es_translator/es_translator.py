@@ -64,7 +64,7 @@ class EsTranslator:
         with self.print_done('Instantiating %s interpreter' % self.Interpreter.name):
             self.interpreter = self.init_interpreter()
 
-        total = self.search().execute().hits.total.value
+        total = self.search().count()
         desc = 'Translating %s document(s)' % total
 
         with self.print_done(desc):
