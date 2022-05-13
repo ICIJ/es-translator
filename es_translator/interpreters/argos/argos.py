@@ -41,6 +41,7 @@ class Argos(AbstractInterpreter):
             return []
     
     def download_necessary_languages(self):
+        argospackage.update_package_index()
         for package in argospackage.get_available_packages():
             if package.from_code == self.source_alpha_2 and package.to_code == self.target_alpha_2:
                 download_path = package.download()
