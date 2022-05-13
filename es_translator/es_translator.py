@@ -9,7 +9,6 @@ from os import path
 from rich.progress import Progress
 from time import sleep
 # Module from the same package
-from es_translator.interpreters.apertium import Apertium
 from es_translator.es import TranslatedHit
 from es_translator.logger import logger
 
