@@ -77,7 +77,7 @@ python es_translator.py --url "http://localhost:9200" --index my-index --source-
 To translate the `title` field we could do:
 
 ```bash
-pipenv shelllator.py --url "http://localhost:9200" --index my-index --source-language fr --target-language es --source-field title
+pipenv es_translator.py --url "http://localhost:9200" --index my-index --source-language fr --target-language es --source-field title
 ```
 
 Translates documents from English to Spanish on a local Elasticsearch using 4 threads:
