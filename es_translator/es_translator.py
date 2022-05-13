@@ -6,7 +6,7 @@ from elasticsearch_dsl import Search
 from multiprocessing import Pool, JoinableQueue
 from queue import Full
 from os import path
-from tqdm import tqdm
+from rich.progress import Progress
 from time import sleep
 # Module from the same package
 from es_translator.interpreters.apertium import Apertium
@@ -33,6 +33,7 @@ def translation_worker(queue):
         except Exception as error:
             logger.warning('Unable to translate doc %s (%s)' % (index, hit.meta.id))
             logger.warning(error)
+            queue.task_done()
 
 
 class EsTranslator:
@@ -74,12 +75,15 @@ class EsTranslator:
             # Create a queue that is able to translate documents in parallel
             translation_queue = JoinableQueue(self.pool_size)
             # We create a pool
-            with Pool(self.pool_size, translation_worker, (translation_queue,)) as pool:
-                documents = search.scan()
-                pbar = tqdm(documents, desc=desc, total=total, leave=False, disable=self.no_progressbar)
-                for index, hit in enumerate(pbar):
-                    translation_queue.put((self, hit, index, self.throttle), True, self.pool_timeout)
-                translation_queue.join()
+            with Pool(self.pool_size, translation_worker, (translation_queue,)):
+                with Progress(disable=self.no_progressbar, transient=True) as progress:   
+                    documents = search.scan()         
+                    task = progress.add_task(desc, total=total)
+                    for index, hit in enumerate(documents):
+                        translation_queue.put((self, hit, index, self.throttle), True, self.pool_timeout)
+                        progress.advance(task)
+                    translation_queue.join()
+                    
 
     def search(self):
         es_client = Elasticsearch(self.url)
@@ -99,8 +103,11 @@ class EsTranslator:
 
     @property
     def stdout_loglevel(self):
-        handler = next(h for h in logger.handlers if isinstance(h, StandardErrorHandler))
-        return getattr(handler, 'level', 0)
+        try:
+            handler = next(h for h in logger.handlers if isinstance(h, StandardErrorHandler))
+            return getattr(handler, 'level', 0)
+        except StopIteration:
+            return 0
 
     @contextmanager
     def print_done(self, str, quiet = False):
