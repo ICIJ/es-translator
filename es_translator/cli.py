@@ -30,7 +30,7 @@ def validate_interpreter(ctx, param, value):
         if value.upper() == interpreter.name.upper():
             return interpreter
     names = (interpreter.name for interpreter in interpreters)
-    raise click.BadParameter('must be a valid interpreter name (%s)' % ''.join(names))
+    raise click.BadParameter('must be a valid interpreter name (%s)' % ', '.join(names))
 
 
 @click.command()
