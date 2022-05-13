@@ -10,6 +10,7 @@ Usage: es-translator [OPTIONS]
 Options:
   --url TEXT                    Elastichsearch URL  [required]
   --index TEXT                  Elastichsearch Index  [required]
+  --interpreter TEXT            Interpreter to use to perform the translation
   --source-language TEXT        Source language to translate from  [required]
   --target-language TEXT        Target language to translate to  [required]
   --intermediary-language TEXT  An intermediary language to use when no
@@ -72,6 +73,12 @@ Translates documents from French to Spanish on a local Elasticsearch. The transl
 
 ```bash
 python es_translator.py --url "http://localhost:9200" --index my-index --source-language fr --target-language es
+```
+
+Translates documents from French to English on a local Elasticsearch using Argos Translate:
+
+```bash
+python es_translator.py --url "http://localhost:9200" --index my-index --source-language fr --target-language en --interpreter argos
 ```
 
 To translate the `title` field we could do:

@@ -36,7 +36,7 @@ def validate_interpreter(ctx, param, value):
 @click.command()
 @click.option('--url', help='Elastichsearch URL', required=True)
 @click.option('--index', help='Elastichsearch Index', required=True)
-@click.option('--interpreter', help='Interpreter to use to perform the translation.', default='APERTIUM', callback=validate_interpreter)
+@click.option('--interpreter', help='Interpreter to use to perform the translation', default='APERTIUM', callback=validate_interpreter)
 @click.option('--source-language', help='Source language to translate from', required=True, default=None)
 @click.option('--target-language', help='Target language to translate to', required=True, default=None)
 @click.option('--intermediary-language', help='An intermediary language to use when no translation is available between the source and the target. If none is provided this will be calculated automatically.')
