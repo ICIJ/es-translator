@@ -1,8 +1,15 @@
+import logging
+
 from argostranslate import package as argospackage
 from argostranslate import translate as argostranslate
 
 from ..abstract import AbstractInterpreter
 from ...logger import logger
+
+# Clear root logger to avoid since Argos set basicConfig which is indempotent 
+root_logger = logging.getLogger('')
+root_logger.handlers = []
+
 
 class ArgosPairNotAvailable(Exception): pass
 

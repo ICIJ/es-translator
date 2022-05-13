@@ -8,7 +8,6 @@ from logging.handlers import SysLogHandler
 logger = logging.getLogger('es-translator')
 logger.setLevel(logging.INFO)
 
-
 def default_log_formatter() -> logging.Formatter:
     return logging.Formatter('%(asctime)s :: %(name)s :: %(levelname)s :: %(message)s')
 
