@@ -6,11 +6,6 @@ from argostranslate import translate as argostranslate
 from ..abstract import AbstractInterpreter
 from ...logger import logger
 
-# Clear root logger to avoid since Argos set basicConfig which is indempotent 
-root_logger = logging.getLogger('')
-root_logger.handlers = []
-root_logger.propagate = False
-
 class ArgosPairNotAvailable(Exception): pass
 
 class Argos(AbstractInterpreter):
