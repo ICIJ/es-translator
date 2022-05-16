@@ -1,10 +1,13 @@
-import logging
-
 from argostranslate import package as argospackage
 from argostranslate import translate as argostranslate
+from argostranslate.utils import logger as argoslogger
 
 from ..abstract import AbstractInterpreter
 from ...logger import logger
+
+# Mute Argos Translate logger explicitely
+argoslogger.handlers = []
+argoslogger.propagate = False
 
 class ArgosPairNotAvailable(Exception): pass
 
