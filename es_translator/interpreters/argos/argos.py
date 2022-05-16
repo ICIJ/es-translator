@@ -5,10 +5,6 @@ from argostranslate.utils import logger as argoslogger
 from ..abstract import AbstractInterpreter
 from ...logger import logger
 
-# Mute Argos Translate logger explicitely
-argoslogger.handlers = []
-argoslogger.propagate = False
-
 class ArgosPairNotAvailable(Exception): pass
 
 class Argos(AbstractInterpreter):
