@@ -45,10 +45,9 @@ wget https://apertium.projectjj.com/apt/install-nightly.sh -O - | sudo bash
 sudo apt install apertium-all-dev
 ```
 
-Create a Virtualenv and install Pip packages with Pipenv:
+Create a Virtualenv and install Pip packages with Poetry:
 
 ```
-sudo apt install pipenv
 make install
 ```
 
@@ -64,7 +63,7 @@ sudo apt install cg3 apertium-get apertium-lex-tools
 Nothing to do as long as you have Docker on your system:
 
 ```
-docker run -it icij/es-translator python es_translator.py --help
+docker run -it icij/es-translator poetry run es-translator --help
 ```
 
 ## Examples
@@ -72,29 +71,29 @@ docker run -it icij/es-translator python es_translator.py --help
 Translates documents from French to Spanish on a local Elasticsearch. The translated field is `content` (the default).
 
 ```bash
-python es_translator.py --url "http://localhost:9200" --index my-index --source-language fr --target-language es
+poetry run es-translator --url "http://localhost:9200" --index my-index --source-language fr --target-language es
 ```
 
 Translates documents from French to English on a local Elasticsearch using Argos Translate:
 
 ```bash
-python es_translator.py --url "http://localhost:9200" --index my-index --source-language fr --target-language en --interpreter argos
+poetry run es-translator --url "http://localhost:9200" --index my-index --source-language fr --target-language en --interpreter argos
 ```
 
 To translate the `title` field we could do:
 
 ```bash
-pipenv es_translator.py --url "http://localhost:9200" --index my-index --source-language fr --target-language es --source-field title
+poetry run es-translator --url "http://localhost:9200" --index my-index --source-language fr --target-language es --source-field title
 ```
 
 Translates documents from English to Spanish on a local Elasticsearch using 4 threads:
 
 ```bash
-python es_translator.py --url "http://localhost:9200" --index my-index --source-language en --target-language es --pool-size 4
+poetry run es-translator --url "http://localhost:9200" --index my-index --source-language en --target-language es --pool-size 4
 ```
 
 Translates documents from Portuguese to English, using an intermediary language (Apertium doesn't offer this translation pair):
 
 ```bash
-python es_translator.py --url "http://localhost:9200" --index my-index --source-language pt --intermediary-language es --target-language en
+poetry run es-translator --url "http://localhost:9200" --index my-index --source-language pt --intermediary-language es --target-language en
 ```
