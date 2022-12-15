@@ -1,4 +1,4 @@
-from deb_pkg_tools.control import deb822_from_string
+from deb_pkg_tools.control import parse_deb822
 from fileinput import FileInput
 from functools import lru_cache
 from glob import glob
@@ -31,7 +31,7 @@ class ApertiumRepository:
         isnt_empty = lambda c: c is not None and c != ''
         control_strings = self.control_file_content.split('\n\n')
         control_strings = list(filter(isnt_empty, control_strings))
-        return list(map(deb822_from_string, control_strings))
+        return list(map(parse_deb822, control_strings))
 
     @property
     @lru_cache()

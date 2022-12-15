@@ -38,4 +38,4 @@ jobs:
       - run:
           name: Run tests
           command: |
-            poetry run nosetests --logging-level=WARNING
+            make test

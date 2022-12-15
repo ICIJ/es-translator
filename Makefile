@@ -13,7 +13,7 @@ poetry_install:
 		poetry install
 
 test:
-		poetry run nosetests --logging-level=WARNING
+		poetry run pytest
 
 tag_version: 
 		git commit -m "build: bump to ${CURRENT_VERSION}" pyproject.toml

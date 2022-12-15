@@ -9,3 +9,4 @@ build
 dist
 .env
 .cache
+.pytest_cache
