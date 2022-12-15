@@ -4,7 +4,7 @@ jobs:
     working_directory: ~/repo
     docker:
       - image: circleci/python:3.8
-      - image: docker.elastic.co/elasticsearch/elasticsearch:6.3.0
+      - image: docker.elastic.co/elasticsearch/elasticsearch:7.9.1
         environment:
           - "discovery.type=single-node"
           - "cluster.name=es-translator"
