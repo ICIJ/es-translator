@@ -36,7 +36,7 @@ docker-setup-multiarch:
 
 docker-publish:
 		docker buildx build \
-			--platform linux/amd64,linux/arm64 \
+			--platform linux/amd64 \
 			-t $(DOCKER_USER)/$(DOCKER_NAME):${CURRENT_VERSION} \
 			-t $(DOCKER_USER)/$(DOCKER_NAME):latest \
 			--push .
