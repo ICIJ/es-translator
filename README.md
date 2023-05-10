@@ -74,10 +74,10 @@ Translates documents from French to Spanish on a local Elasticsearch. The transl
 poetry run es-translator --url "http://localhost:9200" --index my-index --source-language fr --target-language es
 ```
 
-Translates documents from French to English on a local Elasticsearch using Argos Translate:
+Translates documents from French to English on a local Elasticsearch using Apertium:
 
 ```bash
-poetry run es-translator --url "http://localhost:9200" --index my-index --source-language fr --target-language en --interpreter argos
+poetry run es-translator --url "http://localhost:9200" --index my-index --source-language fr --target-language en --interpreter apertium
 ```
 
 To translate the `title` field we could do:

@@ -19,9 +19,8 @@ WORKDIR /tmp
 ADD https://apertium.projectjj.com/apt/install-nightly.sh /tmp/install-nightly.sh
 RUN chmod +x ./install-nightly.sh && ./install-nightly.sh
 
-RUN apt update -qq && apt install -f -qq -y apertium-all-dev \
+RUN apt update -qq && apt install -f -qq -y apertium-dev \
   cg3 apertium-get apertium-lex-tools
-
 
 WORKDIR /opt/es-translator
 

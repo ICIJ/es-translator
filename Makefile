@@ -30,16 +30,16 @@ $(SEMVERS):
 distribute:
 		poetry publish --build 
 
-docker-publish: docker-build docker-tag docker-push
+docker-setup-multiarch:
+		docker run --privileged --rm tonistiigi/binfmt --install all
+		docker buildx create --use
+
+docker-publish:
+		docker buildx build \
+			--platform linux/amd64,linux/arm64 \
+			-t $(DOCKER_USER)/$(DOCKER_NAME):${CURRENT_VERSION} \
+			-t $(DOCKER_USER)/$(DOCKER_NAME):latest \
+			--push .
 
 docker-run:
 		docker run -it $(DOCKER_NAME)
-
-docker-build:
-		docker build -t $(DOCKER_NAME) .
-
-docker-tag:
-		docker tag $(DOCKER_NAME) $(DOCKER_USER)/$(DOCKER_NAME):${CURRENT_VERSION}
-
-docker-push:
-		docker push $(DOCKER_USER)/$(DOCKER_NAME):${CURRENT_VERSION}
