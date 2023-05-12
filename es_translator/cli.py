@@ -34,16 +34,16 @@ def validate_interpreter(ctx, param, value):
 
 
 @click.command()
-@click.option('--url', help='Elastichsearch URL', required=True)
-@click.option('--index', help='Elastichsearch Index', required=True)
-@click.option('--interpreter', help='Interpreter to use to perform the translation', default='ARGOS', callback=validate_interpreter)
-@click.option('--source-language', help='Source language to translate from', required=True, default=None)
-@click.option('--target-language', help='Target language to translate to', required=True, default=None)
+@click.option('-u', '--url', help='Elastichsearch URL', default="http://localhost:9200", required=True)
+@click.option('-i', '--index', help='Elastichsearch Index', required=True)
+@click.option('-r', '--interpreter', help='Interpreter to use to perform the translation', default='ARGOS', callback=validate_interpreter)
+@click.option('-s', '--source-language', help='Source language to translate from', required=True, default=None)
+@click.option('-t', '--target-language', help='Target language to translate to', required=True, default=None)
 @click.option('--intermediary-language', help='An intermediary language to use when no translation is available between the source and the target. If none is provided this will be calculated automatically.')
 @click.option('--source-field', help='Document field to translate', default="content")
 @click.option('--target-field', help='Document field where the translations are stored', default="content_translated")
-@click.option('--query-string', help='Search query string to filter result')
-@click.option('--data-dir', help='Path to the directory where to language model will be downloaded', type=click.Path(exists=True, dir_okay=True, writable=True, readable=True), default=mkdtemp())
+@click.option('-q', '--query-string', help='Search query string to filter result')
+@click.option('-d', '--data-dir', help='Path to the directory where to language model will be downloaded', type=click.Path(exists=True, dir_okay=True, writable=True, readable=True), default=mkdtemp())
 @click.option('--scan-scroll', help='Scroll duration (set to higher value if you\'re processing a lot of documents)', default="5m")
 @click.option('--dry-run', help='Don\'t save anything in Elasticsearch', is_flag=True, default=False)
 @click.option('--pool-size', help='Number of parallel processes to start', default=1)
@@ -54,7 +54,7 @@ def validate_interpreter(ctx, param, value):
 @click.option('--syslog-facility', help='Syslog facility', default='local7')
 @click.option('--stdout-loglevel', help='Change the default log level for stdout error handler', default='ERROR',
               callback=validate_loglevel)
-@click.option('--progressbar/--no-progressbar', help='Display a progressbar', default=None,
+@click.option('-p', '--progressbar/--no-progressbar', help='Display a progressbar', default=None,
             callback=validate_progressbar)
 def translate(syslog_address, syslog_port, syslog_facility, **options):
     # Configure Syslog handler
