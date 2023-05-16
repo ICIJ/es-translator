@@ -1,39 +1,15 @@
 import sys
 from coloredlogs import StandardErrorHandler
 from contextlib import contextmanager
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, ElasticsearchException
 from elasticsearch_dsl import Search
-from multiprocessing import Pool, JoinableQueue
+from multiprocessing import Pool, JoinableQueue, Manager
 from queue import Full
 from os import path
 from rich.progress import Progress
-from time import sleep
 # Module from the same package
-from es_translator.es import TranslatedHit
 from es_translator.logger import logger
-
-
-def translation_worker(queue):
-    while True:
-        try:
-            es_translator, hit, index, throttle = queue.get(True)
-            logger.info('Translating doc %s (%s)' % (index, hit.meta.id))
-            translated_hit = TranslatedHit(hit, es_translator.source_field, es_translator.target_field)
-            translated_hit.add_translation(es_translator.interpreter)
-            logger.info('Translated doc %s (%s)' % (index, hit.meta.id))
-            # Skip on dry run
-            if not es_translator.dry_run:
-                # Create a new  client to
-                client = Elasticsearch(es_translator.url)
-                translated_hit.save(client)
-                logger.info('Saved translation for doc %s (%s)' % (index, hit.meta.id))
-            queue.task_done()
-            sleep(throttle / 1000)
-        except Exception as error:
-            logger.warning('Unable to translate doc %s (%s)' % (index, hit.meta.id))
-            logger.warning(error)
-            queue.task_done()
-
+from es_translator.worker import translation_worker, FatalTranslationException
 
 class EsTranslator:
     def __init__(self, options):
@@ -58,32 +34,70 @@ class EsTranslator:
     @property
     def no_progressbar(self):
         return not self.progressbar
-
+    
     def start(self):
-        with self.print_done('Instantiating %s interpreter' % self.Interpreter.name):
-            self.interpreter = self.init_interpreter()
-
+        # Instantiate the interpreter
+        self.instantiate_interpreter()
+        # Count the total number of documents
         total = self.search().count()
         desc = 'Translating %s document(s)' % total
-
+        # Start the translation process
         with self.print_done(desc):
-            # Add missing field and change the scroll duration
-            search = self.search()
-            search = search.source([self.source_field, self.target_field, '_routing'])
-            search = search.params(scroll=self.scan_scroll)
-            # Create a queue that is able to translate documents in parallel
-            translation_queue = JoinableQueue(self.pool_size)
-            # We create a pool
-            with Pool(self.pool_size, translation_worker, (translation_queue,)):
-                with Progress(disable=self.no_progressbar, transient=True) as progress:   
-                    documents = search.scan()         
-                    task = progress.add_task(desc, total=total)
-                    for index, hit in enumerate(documents):
-                        translation_queue.put((self, hit, index, self.throttle), True, self.pool_timeout)
-                        progress.advance(task)
-                    translation_queue.join()
-                    
+            # Configure the search object
+            search = self.configure_search()
+            # Create a queue to translate documents in parallel
+            translation_queue = self.create_translation_queue()
+            # Create a shared variable to track fatal errors
+            with self.with_shared_fatal_error() as shared_fatal_error: 
+                # Translate the documents
+                self.translate_documents(search, translation_queue, shared_fatal_error, total)
 
+    def instantiate_interpreter(self):
+        with self.print_done('Instantiating %s interpreter' % self.Interpreter.name):
+            self.interpreter = self.init_interpreter()
+        return self.interpreter
+
+    def configure_search(self):
+        # Configure the search object
+        search = self.search()
+        search = search.source([self.source_field, self.target_field, '_routing'])
+        search = search.params(scroll=self.scan_scroll, size=self.pool_size)
+        return search
+
+    def create_translation_queue(self):
+        # Create a queue that is able to translate documents in parallel
+        return JoinableQueue(self.pool_size)
+
+    @contextmanager
+    def with_shared_fatal_error(self):
+        # Use Manager to create a shared variable (shared_fatal_error)
+        with Manager() as manager:
+            # Shared variable between threads, initialized as None
+            yield manager.Value('b', None)
+
+    def translate_documents(self, search, translation_queue, shared_fatal_error, total):
+        # Start a pool of worker processes
+        with Pool(self.pool_size, translation_worker, (translation_queue, shared_fatal_error)):
+            # Create a progress bar
+            with Progress(disable=self.no_progressbar, transient=True) as progress:
+                documents = search.scan()
+                task = progress.add_task('Translating %s document(s)' % total, total=total)
+                for index, hit in enumerate(documents):
+                    self.process_document(translation_queue, hit, index, progress, task, shared_fatal_error)
+                translation_queue.join()
+
+    def process_document(self, translation_queue, hit, index, progress, task, shared_fatal_error):
+        # Add the document to the translation queue
+        translation_queue.put((self, hit, index), True, self.pool_timeout)
+        
+        # Update the progress bar with the current task
+        progress.advance(task)
+        
+        # Check if a fatal error occurred
+        if shared_fatal_error.value:
+            # Raise an exception to interrupt the loop
+            raise FatalTranslationException(shared_fatal_error.value)
+    
     def search(self):
         es_client = Elasticsearch(self.url)
         search = Search(index=self.index, using=es_client)
@@ -109,7 +123,7 @@ class EsTranslator:
             return 0
 
     @contextmanager
-    def print_done(self, str, quiet = False):
+    def print_done(self, str):
         logger.info(str)
         # Avoid conflicting with a high log level
         if self.stdout_loglevel > 20:
@@ -118,13 +132,9 @@ class EsTranslator:
             try:
                 yield
                 print('{0} \033[92mdone\033[0m'.format(str))
-            except Full:
-                logger.error('Timeout reached (%ss).' % self.pool_timeout)
-                print('{0} \033[91merror\033[0m'.format(str))
-            except Exception as error:
+            except (FatalTranslationException, ElasticsearchException, Full) as error:
                 logger.error(error, exc_info=True)
                 print('{0} \033[91merror\033[0m'.format(str))
-                if not quiet: raise error
                 sys.exit(1)
         else:
             yield
