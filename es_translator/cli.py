@@ -54,7 +54,7 @@ def validate_interpreter(ctx, param, value):
 @click.option('--syslog-facility', help='Syslog facility', default='local7')
 @click.option('--stdout-loglevel', help='Change the default log level for stdout error handler', default='ERROR',
               callback=validate_loglevel)
-@click.option('-p', '--progressbar/--no-progressbar', help='Display a progressbar', default=None,
+@click.option('--progressbar/--no-progressbar', help='Display a progressbar', default=None,
             callback=validate_progressbar)
 def translate(syslog_address, syslog_port, syslog_facility, **options):
     # Configure Syslog handler
