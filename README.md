@@ -8,7 +8,7 @@ A lazy yet bulletproof machine translation tool for Elastichsearch.
 Usage: es-translator [OPTIONS]
 
 Options:
-  -u, --url TEXT                  Elastichsearch URL  [required]
+  -u, --url TEXT                  Elastichsearch URL
   -i, --index TEXT                Elastichsearch Index  [required]
   -r, --interpreter TEXT          Interpreter to use to perform the
                                   translation

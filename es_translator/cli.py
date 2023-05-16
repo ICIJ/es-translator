@@ -34,7 +34,7 @@ def validate_interpreter(ctx, param, value):
 
 
 @click.command()
-@click.option('-u', '--url', help='Elastichsearch URL', default="http://localhost:9200", required=True)
+@click.option('-u', '--url', help='Elastichsearch URL', default="http://localhost:9200")
 @click.option('-i', '--index', help='Elastichsearch Index', required=True)
 @click.option('-r', '--interpreter', help='Interpreter to use to perform the translation', default='ARGOS', callback=validate_interpreter)
 @click.option('-s', '--source-language', help='Source language to translate from', required=True, default=None)
