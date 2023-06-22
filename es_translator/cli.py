@@ -117,10 +117,8 @@ def translate(syslog_address, syslog_port, syslog_facility, **options):
     # We setup the translator. Etheir if the translation is done now
     # or later, we need initialize the interpreter (Argos, Apertium, ...)
     es_translator = EsTranslator(options)
-    if options['plan']:
-        es_translator.plan()
-    else:
-        es_translator.start()
+    es_translator.start()
+        
 
 
 @click.command()

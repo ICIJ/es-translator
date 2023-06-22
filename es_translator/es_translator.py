@@ -7,7 +7,7 @@ from multiprocessing import Pool, JoinableQueue, Manager
 from queue import Full
 from os import path
 from rich.progress import Progress
-from typing import Any, ContextManager, Dict
+from typing import Any, ContextManager, Dict, List
 
 # Module from the same package
 from es_translator.interpreters import Apertium, Argos
@@ -40,6 +40,7 @@ class EsTranslator:
         self.throttle = options['throttle']
         self.progressbar = options['progressbar']
         self.interpreter_name = options['interpreter']
+        self.plan = options['plan']
 
     @property
     def no_progressbar(self) -> bool:
@@ -51,6 +52,13 @@ class EsTranslator:
         return not self.progressbar
 
     def start(self) -> None:
+        """Starts or plans the translation process."""
+        if self.plan:
+            self.start_later()
+        else:
+            self.start_now()
+
+    def start_now(self) -> None:
         """Starts the translation process."""
         self.instantiate_interpreter()
         total = self.search().count()
@@ -62,7 +70,7 @@ class EsTranslator:
                 self.translate_documents_in_pool(
                     search, translation_queue, shared_fatal_error, total)
 
-    def plan(self):
+    def start_later(self):
         """Plan the translation process."""
         self.instantiate_interpreter()
         total = self.search().count()
@@ -70,6 +78,7 @@ class EsTranslator:
         with self.print_done(desc):
             search = self.configure_search()
             for hit in search.scan():
+                logger.info(f'Planned translation for doc {hit.meta.id}')
                 translate_document_task.delay(self.options, hit.meta.to_dict())
 
     @property
@@ -111,10 +120,21 @@ class EsTranslator:
             Search: A configured search object.
         """
         search = self.search()
-        search = search.source(
-            [self.source_field, self.target_field, '_routing', '_id'])
+        search = search.source(self.search_source)
         search = search.params(scroll=self.scan_scroll, size=self.pool_size)
         return search
+    
+    @property
+    def search_source(self) -> List[str]:
+        """Gets the list of fields to use in the search.
+
+        Returns: 
+            List[str]: list of fields to use in the search.
+        """
+        if self.plan:
+            return ['_routing', '_id']
+        return [self.source_field, self.target_field, '_routing', '_id']
+
 
     def create_translation_queue(self) -> JoinableQueue:
         """Creates a queue that can translate documents in parallel.
