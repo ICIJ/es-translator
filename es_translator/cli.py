@@ -105,15 +105,15 @@ def validate_interpreter(ctx, param, value):
               help='Plan translations into a queue instead of processing them npw',
               is_flag=True,
               default=False)
-@click.option('--redis-url',
-              help='Redis URL (only needed when planning translation)',
+@click.option('--broker-url',
+              help='Celery broker URL (only needed when planning translation)',
               default='redis://localhost:6379')
 def translate(syslog_address, syslog_port, syslog_facility, **options):
     # Configure Syslog handler
     add_syslog_handler(syslog_address, syslog_port, syslog_facility)
     add_stdout_handler(options['stdout_loglevel'])
     # Configure celery app broker url globally
-    celery_app.conf.broker_url = options['redis_url']
+    celery_app.conf.broker_url = options['broker_url']
     # We setup the translator. Etheir if the translation is done now
     # or later, we need initialize the interpreter (Argos, Apertium, ...)
     es_translator = EsTranslator(options)
@@ -122,15 +122,15 @@ def translate(syslog_address, syslog_port, syslog_facility, **options):
 
 
 @click.command()
-@click.option('--broker', default='redis://redis', help='Celery broker URL.')
-@click.option('--concurrency', default=1, help='Celery broker URL.')
+@click.option('--broker-url', default='redis://redis', help='Celery broker URL')
+@click.option('--concurrency', default=1, help='Number of concurrent workers')
 @click.option('--stdout-loglevel',
               help='Change the default log level for stdout error handler',
               default='ERROR',
               callback=validate_loglevel)
-def tasks(broker, concurrency, stdout_loglevel):
+def tasks(broker_url, concurrency, stdout_loglevel):
     """Starts a Celery worker."""
-    celery_app.conf.broker_url = broker
+    celery_app.conf.broker_url = broker_url
     argv = [
         'worker',
         '--concurrency',
