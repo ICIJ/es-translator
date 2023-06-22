@@ -22,7 +22,7 @@ jobs:
             sudo apt install -f -qq -y apertium-all-dev dpkg-dev fakeroot lintian
       - restore_cache:
           name: Restore virtualenvs from previous builds
-          key: virtualenvs-dependencies-cache-{{ .Branch }}-{{ checksum "poetry.lock" }}-3.9
+          key: virtualenvs-dependencies-cache-{{ .Branch }}-{{ checksum "poetry.lock" }}
       - run:
           name: Install Poetry and project's pip packages
           command: |
@@ -32,7 +32,7 @@ jobs:
             make install
       - save_cache:
           name: Save virtualenvs cache for future builds
-          key: virtualenvs-dependencies-cache-{{ .Branch }}-{{ checksum "poetry.lock" }}-3.9
+          key: virtualenvs-dependencies-cache-{{ .Branch }}-{{ checksum "poetry.lock" }}
           paths:
             - ~/.cache/pypoetry/virtualenvs
       - run:
