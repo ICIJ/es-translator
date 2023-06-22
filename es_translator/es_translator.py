@@ -34,13 +34,13 @@ class EsTranslator:
         self.query_string = options['query_string']
         self.data_dir = options['data_dir']
         self.scan_scroll = options['scan_scroll']
-        self.dry_run = getattr(options, 'dry_run', False)
+        self.dry_run = options.get('dry_run', False)
         self.pool_size = options['pool_size']
         self.pool_timeout = options['pool_timeout']
         self.throttle = options['throttle']
-        self.progressbar = getattr(options, 'progressbar', False)
+        self.progressbar = options.get('progressbar', False)
         self.interpreter_name = options['interpreter']
-        self.plan = getattr(options, 'plan', False)
+        self.plan = options.get('plan', False)
 
     @property
     def no_progressbar(self) -> bool:
