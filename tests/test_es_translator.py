@@ -26,7 +26,8 @@ class EsTranslatorTestCase(unittest.TestCase):
             'pool_timeout': 10,
             'throttle': 0.5,
             'progressbar': True,
-            'interpreter': 'apertium'
+            'interpreter': 'apertium',
+            'plan': False
         }
         self.translator = EsTranslator(options)
 
@@ -65,14 +66,14 @@ class EsTranslatorTestCase(unittest.TestCase):
         self.assertTrue(self.translator.with_shared_fatal_error.called)
         self.assertTrue(self.translator.translate_documents_in_pool.called)
 
-    def test_plan(self):
+    def test_start_later(self):
         self.translator.instantiate_interpreter = MagicMock()
         self.translator.search = MagicMock()
         self.translator.configure_search = MagicMock(return_value=MagicMock())
         translate_document_task = MagicMock()
 
         with patch('es_translator.tasks.translate_document_task.delay', translate_document_task) as mock_delay:
-            self.translator.plan()
+            self.translator.start_later()
             search_results = self.translator.search.return_value.scan.return_value
             expected_calls = [
                 call(
