@@ -58,5 +58,13 @@ jobs:
       - name: Build es-translator
         run: poetry build
 
+      - name: Workaround to catch syntax error in stanza
+        env:
+          PYTHON_VERSION: ${{matrix.python-version}}
+        run: |
+          export VENV_PATH=$(poetry env info -p)
+          export BEAM_FILE=$VENV_PATH/lib/python$PYTHON_VERSION/site-packages/stanza/models/common/beam.py
+          sed -i '/"""/,/"""/ d' $BEAM_FILE
+
       - name: Run tests
         run: make test
