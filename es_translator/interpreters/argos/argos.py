@@ -1,6 +1,5 @@
 from argostranslate import package as argospackage
 from argostranslate import translate as argostranslate
-from argostranslate.utils import logger as argoslogger
 
 from ..abstract import AbstractInterpreter
 from ...logger import logger
@@ -55,10 +54,10 @@ class Argos(AbstractInterpreter):
         argospackage.update_package_index()
         for package in argospackage.get_available_packages():
             if package.from_code == self.source_alpha_2 and package.to_code == self.target_alpha_2:
-                if argospackage.is_installed(package.name):
+                if package in argospackage.get_installed_packages():
                     return
                 download_path = package.download()
-                logger.info(f'Installing Argos package {package.name}')
+                logger.info(f'Installing Argos package {package}')
                 return argospackage.install_from_path(download_path)
         raise ArgosPairNotAvailable
 
