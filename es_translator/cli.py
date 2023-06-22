@@ -7,6 +7,7 @@ from tempfile import mkdtemp
 from es_translator.interpreters import Apertium, Argos
 from es_translator.interpreters.apertium.pairs import Pairs
 from es_translator.logger import add_syslog_handler, add_stdout_handler
+from es_translator.tasks import app as celery_app
 
 
 def validate_loglevel(ctx, param, value):
@@ -28,7 +29,7 @@ def validate_interpreter(ctx, param, value):
     interpreters = ( Apertium, Argos, )
     for interpreter in interpreters:
         if value.upper() == interpreter.name.upper():
-            return interpreter
+            return interpreter.name
     names = (interpreter.name for interpreter in interpreters)
     raise click.BadParameter('must be a valid interpreter name (%s)' % ', '.join(names))
 
@@ -56,13 +57,33 @@ def validate_interpreter(ctx, param, value):
               callback=validate_loglevel)
 @click.option('--progressbar/--no-progressbar', help='Display a progressbar', default=None,
             callback=validate_progressbar)
+@click.option('--plan', help='Plan translations into a queue instead of processing them npw', is_flag=True, default=False)
+@click.option('--redis-url', help='Redis URL (only needed when planning translation)', default='redis://localhost:6379')
 def translate(syslog_address, syslog_port, syslog_facility, **options):
     # Configure Syslog handler
     add_syslog_handler(syslog_address, syslog_port, syslog_facility)
     add_stdout_handler(options['stdout_loglevel'])
-    # We pass all options to EsTranslator then we start the translation
-    # from Elasticsearch. This will download required pairs if needed.
-    EsTranslator(options).start()
+    # Configure celery app broker url globally
+    celery_app.conf.broker_url = options['redis_url']
+    # We setup the translator. Etheir if the translation is done now
+    # or later, we need initialize the interpreter (Argos, Apertium, ...)
+    es_translator = EsTranslator(options)
+    if options['plan']:
+        es_translator.plan()
+    else:
+        es_translator.start()
+
+
+@click.command()
+@click.option('--broker', default='redis://redis', help='Celery broker URL.')
+@click.option('--concurrency', default=1, help='Celery broker URL.')
+@click.option('--stdout-loglevel', help='Change the default log level for stdout error handler', default='ERROR',
+              callback=validate_loglevel)
+def tasks(broker, concurrency, stdout_loglevel):
+    """Starts a Celery worker."""
+    celery_app.conf.broker_url = broker
+    argv = ['worker', '--concurrency', concurrency, '--loglevel', stdout_loglevel]
+    celery_app.worker_main(argv)
 
 
 @click.command()

@@ -20,11 +20,19 @@ urllib3 = "^1.26"
 argostranslate = "^1.7"
 rich = "^12"
 torch = "^1.13"
+celery = {extras = ["redis"], version = "^5.3.1"}
 
 [tool.poetry.group.dev.dependencies]
 pyyaml = "*"
 argh = "*"
 pytest = "^7.2"
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    'ignore:pkg_resources is deprecated as an API',
+]
 
 [build-system]
 requires = ["poetry-core"]
@@ -32,4 +40,5 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 es-translator = "es_translator.cli:translate"
+es-translator-tasks = "es_translator.cli:tasks"
 es-translator-pairs = "es_translator.cli:pairs"
