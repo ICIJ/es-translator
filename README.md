@@ -1,6 +1,5 @@
-# ES Translator
+# ES Translator [![](https://img.shields.io/github/actions/workflow/status/icij/es-translator/main.yml)](https://github.com/ICIJ/es-translator/actions)
 
-[![CircleCI](https://circleci.com/gh/ICIJ/es-translator.svg?style=svg)](https://circleci.com/gh/ICIJ/es-translator)
 
 A lazy yet bulletproof machine translation tool for Elastichsearch.
 
