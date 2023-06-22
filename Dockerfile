@@ -24,8 +24,12 @@ RUN apt update -qq && apt install -f -qq -y apertium-dev \
 
 WORKDIR /opt/es-translator
 
+COPY pyproject.toml poetry.lock /opt/es-translator/
+RUN poetry install --no-root --no-interaction --no-ansi
+
 COPY . .
-RUN poetry install
+
+RUN poetry install --no-interaction --no-ansi
 RUN poetry build
 
 CMD ["poetry", "run", "es-translator", "--help"]
