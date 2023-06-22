@@ -6,6 +6,7 @@ from elasticsearch_dsl import Search
 from es_translator.interpreters import Apertium
 from es_translator.es_translator import EsTranslator
 
+
 class EsTranslatorTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -28,7 +29,7 @@ class EsTranslatorTestCase(unittest.TestCase):
             'interpreter': 'apertium'
         }
         self.translator = EsTranslator(options)
-    
+
     def test_configure_search(self):
         search = self.translator.configure_search()
 
@@ -73,6 +74,9 @@ class EsTranslatorTestCase(unittest.TestCase):
         with patch('es_translator.tasks.translate_document_task.delay', translate_document_task) as mock_delay:
             self.translator.plan()
             search_results = self.translator.search.return_value.scan.return_value
-            expected_calls = [call(self.translator.options, hit.meta.to_dict()) for hit in search_results]
+            expected_calls = [
+                call(
+                    self.translator.options,
+                    hit.meta.to_dict()) for hit in search_results]
             mock_delay.assert_has_calls(expected_calls)
             self.assertEqual(mock_delay.call_count, len(search_results))

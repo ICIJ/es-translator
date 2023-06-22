@@ -7,10 +7,16 @@ from ..abstract import AbstractInterpreter
 from ...alpha import to_alpha_3_pair
 from ...logger import logger
 
+
 class Apertium(AbstractInterpreter):
     name = 'APERTIUM'
-    
-    def __init__(self, source = None, target = None, intermediary = None, pack_dir = None):
+
+    def __init__(
+            self,
+            source=None,
+            target=None,
+            intermediary=None,
+            pack_dir=None):
         super().__init__(source, target, intermediary, pack_dir)
         # A class to download necessary pair package
         self.repository = ApertiumRepository(self.pack_dir)
@@ -34,7 +40,9 @@ class Apertium(AbstractInterpreter):
     @property
     def pairs_pipeline(self):
         if self.intermediary:
-            return [self.intermediary_source_pair, self.intermediary_target_pair]
+            return [
+                self.intermediary_source_pair,
+                self.intermediary_target_pair]
         else:
             return [self.pair_alpha_3]
 
@@ -58,25 +66,27 @@ class Apertium(AbstractInterpreter):
     def intermediary_pairs(self):
         # Find the intermediary lang only if not given
         if self.intermediary is None:
-            trunk_packages = [ s.split('-') for s in self.remote_pairs ]
+            trunk_packages = [s.split('-') for s in self.remote_pairs]
             # Build a tree of languages and their children
             packages_tree = self.lang_tree(self.source, trunk_packages)
-            # Find the first path between self.source (the root) and self.target in the given tree
-            self.intermediary = self.first_pairs_path(packages_tree, self.target)[0]
+            # Find the first path between self.source (the root) and
+            # self.target in the given tree
+            self.intermediary = self.first_pairs_path(
+                packages_tree, self.target)[0]
         # We build the two intermediary pairs
-        return [ self.intermediary_source_pair, self.intermediary_target_pair ]
+        return [self.intermediary_source_pair, self.intermediary_target_pair]
 
     @property
     def local_pairs(self):
         output = apertium('-d', self.pack_dir, '-l').strip()
-        return [ s.strip() for s in output.split('\n') ]
+        return [s.strip() for s in output.split('\n')]
 
     @property
     @lru_cache()
-    def remote_pairs(self, module = 'trunk'):
+    def remote_pairs(self, module='trunk'):
         packages = self.repository.pair_packages
         pairs = []
-        package_name_to_pair = lambda n: '-'.join(n.split('-')[-2:])
+        def package_name_to_pair(n): return '-'.join(n.split('-')[-2:])
         # Extract package within these two properties
         for attr in ['Package', 'Provides']:
             for package in packages:
@@ -84,7 +94,7 @@ class Apertium(AbstractInterpreter):
                     pair = package_name_to_pair(value.strip())
                     pairs.append(pair)
         # Remove empty values
-        return [ p for p in pairs if p != '']
+        return [p for p in pairs if p != '']
 
     def pair_to_pair_package(self, pair):
         pair_inversed = '-'.join(pair.split('-')[::-1])
@@ -101,7 +111,7 @@ class Apertium(AbstractInterpreter):
         else:
             self.download_intermediary_pairs()
 
-    def download_pair(self, pair = None):
+    def download_pair(self, pair=None):
         if pair is None:
             pair = self.pair_alpha_3
         else:
@@ -117,12 +127,13 @@ class Apertium(AbstractInterpreter):
         for pair in self.intermediary_pairs:
             self.download_pair(pair)
 
-    def lang_tree(self, lang, pairs, depth = 2):
-        tree = dict(lang = lang, children = dict())
+    def lang_tree(self, lang, pairs, depth=2):
+        tree = dict(lang=lang, children=dict())
         for pair in pairs:
             if lang in pair and depth > 0:
                 child_lang = next(l for l in pair if l != lang)
-                tree["children"][child_lang] = self.lang_tree(child_lang, pairs, depth - 1)
+                tree["children"][child_lang] = self.lang_tree(
+                    child_lang, pairs, depth - 1)
         return tree
 
     def first_pairs_path(self, leaf, lang):
@@ -136,7 +147,10 @@ class Apertium(AbstractInterpreter):
 
     def leaf_has_lang(self, leaf, lang):
         children = leaf['children'].values()
-        return lang in leaf['children'] or any(self.leaf_has_lang(child_leaf, lang) for child_leaf in children)
+        return lang in leaf['children'] or any(
+            self.leaf_has_lang(
+                child_leaf,
+                lang) for child_leaf in children)
 
     def translate(self, input):
         for pair in self.pairs_pipeline:
@@ -150,7 +164,8 @@ class Apertium(AbstractInterpreter):
             with NamedTemporaryFile(mode='w+t') as temp_input_file:
                 temp_input_file.writelines(input)
                 temp_input_file.seek(0)
-                input_translated = apertium('-ud', self.pack_dir, pair, temp_input_file.name)
+                input_translated = apertium(
+                    '-ud', self.pack_dir, pair, temp_input_file.name)
         except ErrorReturnCode as e:
             raise Exception('Unable to translate this string.')
         return str(input_translated)

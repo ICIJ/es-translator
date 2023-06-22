@@ -6,7 +6,9 @@ from queue import Full
 from es_translator.logger import logger
 
 
-class FatalTranslationException(Exception): pass
+class FatalTranslationException(Exception):
+    pass
+
 
 def translation_worker(queue, shared_fatal_error):
     """

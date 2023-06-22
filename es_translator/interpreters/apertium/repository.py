@@ -13,8 +13,9 @@ from es_translator.symlink import create_symlink
 REPOSITORY_URL = "https://apertium.projectjj.com/apt/nightly"
 PACKAGES_FILE_URL = "%s/dists/focal/main/binary-amd64/Packages" % REPOSITORY_URL
 
+
 class ApertiumRepository:
-    def __init__(self, cache_dir = None):
+    def __init__(self, cache_dir=None):
         # Create a temporary pack dir (if needed)
         self.cache_dir = abspath(cache_dir)
 
@@ -28,7 +29,7 @@ class ApertiumRepository:
     @property
     @lru_cache()
     def packages(self):
-        isnt_empty = lambda c: c is not None and c != ''
+        def isnt_empty(c): return c is not None and c != ''
         control_strings = self.control_file_content.split('\n\n')
         control_strings = list(filter(isnt_empty, control_strings))
         return list(map(parse_deb822, control_strings))
@@ -39,7 +40,8 @@ class ApertiumRepository:
         return list(filter(self.is_apertium_pair, self.packages))
 
     def find_package(self, package):
-        is_package = lambda c: c.get('Package') == package or c.get('Provides') == package
+        def is_package(c): return c.get(
+            'Package') == package or c.get('Provides') == package
         try:
             return next(filter(is_package, self.packages))
         except StopIteration:
@@ -49,9 +51,10 @@ class ApertiumRepository:
     def find_pair_package(self, pair):
         pair = to_alpha_3_pair(pair)
         pair_inversed = '-'.join(pair.split('-')[::-1])
+
         def is_pair(c):
-            return c.get('Package',  '').endswith(pair) \
-                or c.get('Package',  '').endswith(pair_inversed)
+            return c.get('Package', '').endswith(pair) \
+                or c.get('Package', '').endswith(pair_inversed)
         try:
             return next(filter(is_pair, self.pair_packages))
         except StopIteration:
@@ -64,7 +67,7 @@ class ApertiumRepository:
         except KeyError:
             return False
 
-    def download_package(self, name, force = False):
+    def download_package(self, name, force=False):
         package = self.find_package(name)
         package_url = REPOSITORY_URL + '/' + package['Filename']
         package_dir = join(self.cache_dir, name)
@@ -88,7 +91,7 @@ class ApertiumRepository:
             for line in fileinput:
                 print(line.replace(target, replacement), end='')
 
-    def extract_pair_package(self, file, extraction_dir = '.'):
+    def extract_pair_package(self, file, extraction_dir='.'):
         workdir = dirname(file)
         with pushd(workdir):
             # Extract the file from the .deb
@@ -104,14 +107,17 @@ class ApertiumRepository:
 
     def create_pair_package_alias(self, package_dir):
         extraction_dir = dirname(package_dir) + '/'
-        [source, target] = basename(package_dir).split('apertium-')[-1].split('-')
+        [source, target] = basename(package_dir).split(
+            'apertium-')[-1].split('-')
         if len(source) == 2:
             aliases = (to_alpha_3(source), to_alpha_3(target))
         else:
             aliases = (to_alpha_2(source), to_alpha_2(target))
         # Build the alias dir using the alias
         alias_dir = join(extraction_dir, 'apertium-%s-%s' % aliases)
-        mode_file = join(extraction_dir, 'modes', '%s-%s.mode' % (source, target))
+        mode_file = join(
+            extraction_dir, 'modes', '%s-%s.mode' %
+            (source, target))
         mode_alias_file = join(extraction_dir, 'modes', '%s-%s.mode' % aliases)
         # Use a symbolic links
         create_symlink(package_dir, alias_dir)
@@ -123,14 +129,14 @@ class ApertiumRepository:
         package_file = self.download_pair_package(pair)
         package_dir = self.extract_pair_package(package_file)
         alias_dir = self.create_pair_package_alias(package_dir)
-        self.import_modes(clear = False)
+        self.import_modes(clear=False)
         return package_dir
 
     def clear_modes(self):
         with pushd(self.cache_dir):
             rm('-Rf', 'modes')
 
-    def import_modes(self, clear = True):
+    def import_modes(self, clear=True):
         with pushd(self.cache_dir):
             mkdir('-p', 'modes')
             # Copy all the mode files

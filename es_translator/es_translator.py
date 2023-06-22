@@ -40,7 +40,7 @@ class EsTranslator:
         self.throttle = options['throttle']
         self.progressbar = options['progressbar']
         self.interpreter_name = options['interpreter']
-        
+
     @property
     def no_progressbar(self) -> bool:
         """Check if the progressbar option is set to False.
@@ -59,7 +59,8 @@ class EsTranslator:
             search = self.configure_search()
             translation_queue = self.create_translation_queue()
             with self.with_shared_fatal_error() as shared_fatal_error:
-                self.translate_documents_in_pool(search, translation_queue, shared_fatal_error, total)
+                self.translate_documents_in_pool(
+                    search, translation_queue, shared_fatal_error, total)
 
     def plan(self):
         """Plan the translation process."""
@@ -110,7 +111,8 @@ class EsTranslator:
             Search: A configured search object.
         """
         search = self.search()
-        search = search.source([self.source_field, self.target_field, '_routing', '_id'])
+        search = search.source(
+            [self.source_field, self.target_field, '_routing', '_id'])
         search = search.params(scroll=self.scan_scroll, size=self.pool_size)
         return search
 
@@ -135,13 +137,18 @@ class EsTranslator:
     def find_document(self, params: Dict[str, str]):
         using = Elasticsearch(self.url)
         routing = getattr(params, 'routing', params['id'])
-        return Document.get(index=params['index'], id=params['id'], routing=routing, using=using)
+        return Document.get(
+            index=params['index'],
+            id=params['id'],
+            routing=routing,
+            using=using)
 
     def translate_document(self, hit):
         self.instantiate_interpreter()
         # Translate the document
         logger.info(f'Translating doc {hit.meta.id}')
-        translated_hit = TranslatedHit(hit, self.source_field, self.target_field)
+        translated_hit = TranslatedHit(
+            hit, self.source_field, self.target_field)
         translated_hit.add_translation(self.interpreter)
         logger.info(f'Translated doc {hit.meta.id}')
         # Save the translated document if not in dry run mode
@@ -150,7 +157,12 @@ class EsTranslator:
             translated_hit.save(client)
             logger.info(f'Saved translation for doc {hit.meta.id}')
 
-    def translate_documents_in_pool(self, search: Search, translation_queue: JoinableQueue, shared_fatal_error: Manager, total: int) -> None:
+    def translate_documents_in_pool(
+            self,
+            search: Search,
+            translation_queue: JoinableQueue,
+            shared_fatal_error: Manager,
+            total: int) -> None:
         """Translates documents.
 
         Args:
@@ -161,12 +173,20 @@ class EsTranslator:
         """
         with Pool(self.pool_size, translation_worker, (translation_queue, shared_fatal_error)):
             with Progress(disable=self.no_progressbar, transient=True) as progress:
-                task = progress.add_task(f"Translating {total} document{'s'[:total^1]}", total=total)
+                task = progress.add_task(
+                    f"Translating {total} document{'s'[:total^1]}", total=total)
                 for hit in search.scan():
-                    self.process_document(translation_queue, hit, progress, task, shared_fatal_error)
+                    self.process_document(
+                        translation_queue, hit, progress, task, shared_fatal_error)
                 translation_queue.join()
 
-    def process_document(self, translation_queue: JoinableQueue, hit: Any, progress: Progress, task: Any, shared_fatal_error: Manager) -> None:
+    def process_document(
+            self,
+            translation_queue: JoinableQueue,
+            hit: Any,
+            progress: Progress,
+            task: Any,
+            shared_fatal_error: Manager) -> None:
         """Processes a document.
 
         Args:
@@ -202,8 +222,13 @@ class EsTranslator:
         """
         pack_dir = path.join(self.data_dir, 'packs', self.interpreter_name)
         interpreters = (Apertium, Argos,)
-        Interpreter = next(i for i in interpreters if i.name.lower() == self.interpreter_name.lower())
-        return Interpreter(self.source_language, self.target_language, self.intermediary_language, pack_dir)
+        Interpreter = next(
+            i for i in interpreters if i.name.lower() == self.interpreter_name.lower())
+        return Interpreter(
+            self.source_language,
+            self.target_language,
+            self.intermediary_language,
+            pack_dir)
 
     def print_flush(self, string: str) -> None:
         """Prints and flushes a string to stdout.
@@ -222,7 +247,9 @@ class EsTranslator:
             int: The log level of stdout.
         """
         try:
-            handler = next(h for h in logger.handlers if isinstance(h, StandardErrorHandler))
+            handler = next(
+                h for h in logger.handlers if isinstance(
+                    h, StandardErrorHandler))
             return getattr(handler, 'level', 0)
         except StopIteration:
             return 0

@@ -9,7 +9,8 @@ app.conf.task_default_queue = 'es_translator:default'
 
 
 @app.task
-def translate_document_task(translator_options: Dict[str, Any], document_params: Dict[str, Any]) -> None:
+def translate_document_task(
+        translator_options: Dict[str, Any], document_params: Dict[str, Any]) -> None:
     """Celery task to translate a document.
 
     Args:

@@ -1,8 +1,9 @@
 # Module from the same package
 from .apertium import Apertium
 
+
 class Pairs:
-    def __init__(self, data_dir, local = False):
+    def __init__(self, data_dir, local=False):
         self.apertium = Apertium(pack_dir=data_dir)
         self.local = local
 
