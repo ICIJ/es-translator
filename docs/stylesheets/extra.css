@@ -9,13 +9,18 @@
   --md-typeset-a-color: #ff0000;
 }
 
+[data-md-color-scheme="icij-light"] .md-search__input:not(:focus),
+[data-md-color-scheme="icij-dark"] .md-search__input:not(:focus) {
+  background: #222;
+}
+
 [data-md-color-scheme="icij-dark"] {
   color-scheme: dark;
 
   --md-accent-fg-color: #ff0000;
 
   --md-primary-fg-color: #000;
-  --md-primary-fg-color--dark: #261b1b;
+  --md-primary-fg-color--dark: #1c1c1c;
   
   --md-default-fg-color: #fff;
   --md-default-fg-color--light: #e9e9e9;
