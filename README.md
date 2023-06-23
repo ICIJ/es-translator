@@ -22,7 +22,7 @@ python3 -m pip install --user es-translator
 Nothing to do as long as you have Docker on your system:
 
 ```
-docker run -it icij/es-translator poetry run es-translator --help
+docker run -it icij/es-translator es-translator --help
 ```
 
 ## Usage
