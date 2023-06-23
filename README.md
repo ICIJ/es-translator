@@ -1,5 +1,6 @@
 # ES Translator [![](https://img.shields.io/github/actions/workflow/status/icij/es-translator/main.yml)](https://github.com/ICIJ/es-translator/actions) [![](https://img.shields.io/pypi/pyversions/es-translator)](https://pypi.org/project/es-translator/) 
 
+A lazy yet bulletproof machine translation tool for Elastichsearch.
 
 ## Installation (Ubuntu)
 
@@ -24,9 +25,10 @@ Nothing to do as long as you have Docker on your system:
 docker run -it icij/es-translator poetry run es-translator --help
 ```
 
-This is the primarly command from EsTranslator to translate documents.
-
 ## Usage
+
+The primarly command from EsTranslator to translate documents is `es-translator`:
+
 
 ```
 Usage: es-translator [OPTIONS]
