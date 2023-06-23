@@ -16,23 +16,30 @@ There are several ways you can contribute to the EsTranslator project:
 
 To set up a development environment for EsTranslator, follow these steps:
 
-1. Clone the repository:
+1. Install Apertium:
+
+```bash
+wget https://apertium.projectjj.com/apt/install-nightly.sh -O - | sudo bash
+sudo apt install apertium-all-dev
+```
+
+2. Clone the repository:
 
 ```shell
 git clone https://github.com/icij/es-translator.git
 ```
 
-2. Install the required dependencies:
+3. Install the required dependencies:
 
 ```shell
 cd es-translator
-poetry install
+make install
 ```
 
-3. Run tests to verify the setup:
+4. Run tests to verify the setup:
 
 ```shell
-poetry run pytest
+make test
 ```
 
 ## Code Contribution Guidelines

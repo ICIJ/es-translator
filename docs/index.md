@@ -2,12 +2,27 @@
 
 A lazy yet bulletproof machine translation tool for Elastichsearch.
 
-## Installation
+## Installation (Ubuntu)
 
-You can install EsTranslator using pip:
+Install Apertium:
+
+```bash
+wget https://apertium.projectjj.com/apt/install-nightly.sh -O - | sudo bash
+sudo apt install apertium-all-dev
+```
+
+Then finally, install es-translator with pip:
 
 ```bash
 python3 -m pip install --user es-translator
+```
+
+## Installation (Docker)
+
+Nothing to do as long as you have Docker on your system:
+
+```
+docker run -it icij/es-translator poetry run es-translator --help
 ```
 
 ## Documentation

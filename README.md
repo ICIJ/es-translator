@@ -1,7 +1,32 @@
 # ES Translator [![](https://img.shields.io/github/actions/workflow/status/icij/es-translator/main.yml)](https://github.com/ICIJ/es-translator/actions) [![](https://img.shields.io/pypi/pyversions/es-translator)](https://pypi.org/project/es-translator/) 
 
 
-A lazy yet bulletproof machine translation tool for Elastichsearch.
+## Installation (Ubuntu)
+
+Install Apertium:
+
+```bash
+wget https://apertium.projectjj.com/apt/install-nightly.sh -O - | sudo bash
+sudo apt install apertium-all-dev
+```
+
+Then install es-translator with pip:
+
+```bash
+python3 -m pip install --user es-translator
+```
+
+## Installation (Docker)
+
+Nothing to do as long as you have Docker on your system:
+
+```
+docker run -it icij/es-translator poetry run es-translator --help
+```
+
+This is the primarly command from EsTranslator to translate documents.
+
+## Usage
 
 ```
 Usage: es-translator [OPTIONS]
@@ -37,67 +62,24 @@ Options:
                                   error handler
   --progressbar / --no-progressbar
                                   Display a progressbar
+  --plan                          Plan translations into a queue instead of
+                                  processing them npw
+  --broker-url TEXT               Celery broker URL (only needed when planning
+                                  translation)
   --help                          Show this message and exit.
 ```
 
-## Installation (Ubuntu)
+Learn more about how to use this command in the [Usage Documentation](https://icij.github.io/es-translator/usage/).
 
-Install Apertium:
+## API
 
-```
-wget https://apertium.projectjj.com/apt/install-nightly.sh -O - | sudo bash
-sudo apt install apertium-all-dev
-```
+You can explore the [API Documentation](https://icij.github.io/es-translator/api/) for more information.
 
-Create a Virtualenv and install Pip packages with Poetry:
+## Contributing
 
-```
-make install
-```
+Contributions are welcome! If you encounter any issues or have suggestions for improvements, please open an issue on the [GitHub repository](https://github.com/icij/es-translator). If you're willing to help, check the page about [how to contribute](https://icij.github.io/es-translator/contributing/) to this project.
 
-On Ubuntu 22.04 some additional packages might be needed if you use the version from Ubuntu's repository:
+## License
 
-```
-sudo apt install cg3 apertium-get apertium-lex-tools
-```
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/icij/es-translator/blob/main/LICENSE.md) file for more details.
 
-
-## Installation (Docker)
-
-Nothing to do as long as you have Docker on your system:
-
-```
-docker run -it icij/es-translator poetry run es-translator --help
-```
-
-## Examples
-
-Translates documents from French to Spanish on a local Elasticsearch. The translated field is `content` (the default).
-
-```bash
-poetry run es-translator --url "http://localhost:9200" --index my-index --source-language fr --target-language es
-```
-
-Translates documents from French to English on a local Elasticsearch using Apertium:
-
-```bash
-poetry run es-translator --url "http://localhost:9200" --index my-index --source-language fr --target-language en --interpreter apertium
-```
-
-To translate the `title` field we could do:
-
-```bash
-poetry run es-translator --url "http://localhost:9200" --index my-index --source-language fr --target-language es --source-field title
-```
-
-Translates documents from English to Spanish on a local Elasticsearch using 4 threads:
-
-```bash
-poetry run es-translator --url "http://localhost:9200" --index my-index --source-language en --target-language es --pool-size 4
-```
-
-Translates documents from Portuguese to English, using an intermediary language (Apertium doesn't offer this translation pair):
-
-```bash
-poetry run es-translator --url "http://localhost:9200" --index my-index --source-language pt --intermediary-language es --target-language en
-```
