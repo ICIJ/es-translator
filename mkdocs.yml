@@ -67,7 +67,6 @@ plugins:
         python:
           paths: [.]
           options:
-            show_source: false
             separate_signature: true
             filters: ["!^_"]
             docstring_options:
