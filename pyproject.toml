@@ -21,6 +21,7 @@ argostranslate = "^1.7"
 rich = "^12"
 torch = "^1.13"
 celery = {extras = ["redis"], version = "^5.3.1"}
+filelock = "^3.12.2"
 
 [tool.poetry.group.dev.dependencies]
 pyyaml = "*"
