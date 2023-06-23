@@ -7,25 +7,25 @@ clean:
 		find . -name "*.pyc" -exec rm -rf {} \;
 		rm -rf dist *.egg-info __pycache__
 
-install: poetry_install
+install: poetry-install
 
-poetry_install:
+poetry-install:
 		poetry install
 
 test:
 		poetry run pytest
 
-tag_version: 
+tag-version: 
 		git commit -m "build: bump to ${CURRENT_VERSION}" pyproject.toml
 		git tag ${CURRENT_VERSION}
 
-set_version:
+set-version:
 		poetry version ${CURRENT_VERSION}
-		$(MAKE) tag_version
+		$(MAKE) tag-version
 
 $(SEMVERS):
 		poetry version $@
-		$(MAKE) tag_version
+		$(MAKE) tag-version
 
 distribute:
 		poetry publish --build 
@@ -43,3 +43,9 @@ docker-publish:
 
 docker-run:
 		docker run -it $(DOCKER_NAME)
+
+publish-doc:
+		poetry run mkdocs gh-deploy
+
+serve-doc:
+		poetry run mkdocs serve
