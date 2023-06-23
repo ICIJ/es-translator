@@ -11,3 +11,4 @@ dist
 .cache
 .git
 .pytest_cache
+site
