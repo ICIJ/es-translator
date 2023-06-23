@@ -2,13 +2,9 @@
   color-scheme: light;
   
   --md-accent-fg-color: #ff0000;
-
   --md-primary-fg-color: #000;
+  --md-primary-fg-color--dark: #000;
   --md-default-fg-color--light: #999;
-  --md-primary-fg-color--dark: ;
-
-  --md-default-bg-color: #fffff;
-
   --md-typeset-color: #3c3c3c;
   --md-typeset-a-color: #ff0000;
 }
