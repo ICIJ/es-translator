@@ -52,10 +52,7 @@ class TranslatedHit():
                 interpreter.target_name,
                 interpreter.name):
             content = interpreter.translate(self.source_value)
-            if max_content_length == -1:
-                truncated_content = content
-            else:
-                truncated_content = content[:max_content_length]
+            truncated_content = content if max_content_length == -1 else content[:max_content_length]
             self.hit[self.target_field].append(dict(
                 translator=interpreter.name,
                 source_language=interpreter.source_name.upper(),
