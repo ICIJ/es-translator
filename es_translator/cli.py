@@ -1,8 +1,11 @@
+import re
+
 import click
 import logging
 
-from es_translator import EsTranslator
 from tempfile import mkdtemp
+
+from es_translator import EsTranslator
 # Module from the same package
 from es_translator.interpreters import Apertium, Argos
 from es_translator.interpreters.apertium.pairs import Pairs
@@ -35,6 +38,19 @@ def validate_interpreter(ctx, param, value):
     raise click.BadParameter(
         'must be a valid interpreter name (%s)' %
         ', '.join(names))
+
+
+def validate_max_content_length(ctx, param, value: str) -> int:
+    if re.match('[0-9]+[KMG]?$', value):
+        if value.endswith('K'):
+            return int(value[:-1]) * 1024
+        if value.endswith('M'):
+            return int(value[:-1]) * 1024 ** 2
+        if value.endswith('G'):
+            return int(value[:-1]) * 1024 ** 3
+        return int(value)
+    else:
+        raise click.BadParameter('max content length should be a number optionally followed by K or M or G')
 
 
 @click.command()
@@ -108,6 +124,10 @@ def validate_interpreter(ctx, param, value):
 @click.option('--broker-url',
               help='Celery broker URL (only needed when planning translation)',
               default='redis://localhost:6379')
+@click.option('--max-content-length',
+              help="Max translated content length (<[0-9]+[KMG]?>) to avoid highlight errors"
+                   "(see http://github.com/ICIJ/datashare#1184)",
+              callback=validate_max_content_length)
 def translate(syslog_address, syslog_port, syslog_facility, **options):
     # Configure Syslog handler
     add_syslog_handler(syslog_address, syslog_port, syslog_facility)
