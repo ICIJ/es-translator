@@ -46,20 +46,22 @@ class TranslatedHit():
             routing=self.routing,
             body=self.body)
 
-    def add_translation(self, interpreter):
+    def add_translation(self, interpreter, max_content_length=-1):
         if not self.is_translated(
                 interpreter.source_name,
                 interpreter.target_name,
                 interpreter.name):
+            content = interpreter.translate(self.source_value)
             self.hit[self.target_field].append(dict(
                 translator=interpreter.name,
                 source_language=interpreter.source_name.upper(),
                 target_language=interpreter.target_name.upper(),
-                content=interpreter.translate(self.source_value)))
+                content=content if max_content_length == -1 else content[:max_content_length]))
 
     def is_translated(self, source_language, target_language, translator):
         def same_languages(t):
             return t['source_language'] == source_language.upper() and \
                 t['target_language'] == target_language.upper() and \
                 t['translator'] == translator
+
         return any(t for t in self.translations if same_languages(t))

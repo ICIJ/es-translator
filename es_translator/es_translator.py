@@ -6,6 +6,8 @@ from elasticsearch_dsl import Document, Search
 from multiprocessing import Pool, JoinableQueue, Manager
 from queue import Full
 from os import path
+
+from elasticsearch_dsl.utils import ObjectBase
 from rich.progress import Progress
 from typing import Any, ContextManager, Dict, List
 
@@ -40,6 +42,7 @@ class EsTranslator:
         self.throttle = options['throttle']
         self.progressbar = options.get('progressbar', False)
         self.interpreter_name = options['interpreter']
+        self.max_content_length = options.get('max_content_length', -1)
         self.plan = options.get('plan', False)
 
     @property
@@ -99,7 +102,8 @@ class EsTranslator:
             'pool_timeout': self.pool_timeout,
             'throttle': self.throttle,
             'progressbar': self.progressbar,
-            'interpreter': self.interpreter_name
+            'interpreter': self.interpreter_name,
+            'max_content_length': self.max_content_length
         }
 
     def instantiate_interpreter(self) -> Any:
@@ -155,7 +159,7 @@ class EsTranslator:
             yield manager.Value('b', None)
 
     def find_document(self, params: Dict[str, str]):
-        using = Elasticsearch(self.url)
+        using = self.create_client()
         routing = getattr(params, 'routing', params['id'])
         return Document.get(
             index=params['index'],
@@ -163,18 +167,16 @@ class EsTranslator:
             routing=routing,
             using=using)
 
-    def translate_document(self, hit):
+    def translate_document(self, hit: ObjectBase):
         self.instantiate_interpreter()
         # Translate the document
         logger.info(f'Translating doc {hit.meta.id}')
-        translated_hit = TranslatedHit(
-            hit, self.source_field, self.target_field)
-        translated_hit.add_translation(self.interpreter)
+        translated_hit = self.create_translated_hit(hit)
+        translated_hit.add_translation(self.interpreter, max_content_length=self.max_content_length)
         logger.info(f'Translated doc {hit.meta.id}')
         # Save the translated document if not in dry run mode
         if not self.dry_run:
-            client = Elasticsearch(self.url)
-            translated_hit.save(client)
+            translated_hit.save(self.create_client())
             logger.info(f'Saved translation for doc {hit.meta.id}')
 
     def translate_documents_in_pool(
@@ -228,7 +230,7 @@ class EsTranslator:
         Returns:
             Search: The search result.
         """
-        using = Elasticsearch(self.url)
+        using = self.create_client()
         search = Search(index=self.index, using=using)
         if self.query_string:
             search = search.query("query_string", query=self.query_string)
@@ -297,3 +299,10 @@ class EsTranslator:
                 sys.exit(1)
         else:
             yield
+
+    def create_translated_hit(self, hit):
+        return TranslatedHit(
+            hit, self.source_field, self.target_field)
+
+    def create_client(self):
+        return Elasticsearch(self.url)

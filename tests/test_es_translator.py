@@ -3,6 +3,8 @@ from tempfile import mkdtemp
 from unittest.mock import patch, MagicMock, call
 
 from elasticsearch_dsl import Search
+from elasticsearch_dsl.utils import ObjectBase
+
 from es_translator.interpreters import Apertium
 from es_translator.es_translator import EsTranslator
 
@@ -27,7 +29,8 @@ class EsTranslatorTestCase(unittest.TestCase):
             'throttle': 0.5,
             'progressbar': True,
             'interpreter': 'apertium',
-            'plan': False
+            'plan': False,
+            'max_content_length': 8
         }
         self.translator = EsTranslator(options)
 
@@ -81,3 +84,16 @@ class EsTranslatorTestCase(unittest.TestCase):
                     hit.meta.to_dict()) for hit in search_results]
             mock_delay.assert_has_calls(expected_calls)
             self.assertEqual(mock_delay.call_count, len(search_results))
+
+    def test_max_translated_content(self):
+        interpreter = MagicMock()
+        interpreter.translate = 'this is a more than 8 char string'
+        self.translator.init_interpreter = MagicMock(return_value=interpreter)
+        self.translator.create_client = MagicMock()
+        translated_hit = MagicMock()
+        self.translator.create_translated_hit = MagicMock(return_value=translated_hit)
+
+        self.translator.translate_document(MagicMock())
+
+        self.assertTrue(translated_hit.add_translation.called)
+        translated_hit.add_translation.assert_called_with(interpreter, max_content_length=8)
