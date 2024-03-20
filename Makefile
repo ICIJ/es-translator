@@ -1,6 +1,6 @@
 DOCKER_USER := icij
 DOCKER_NAME := es-translator
-CURRENT_VERSION ?= `poetry version -s`
+CURRENT_VERSION ?= `git describe --tags --always --abbrev=0 | sed 's/^v//'`
 SEMVERS := major minor patch
 
 clean:
