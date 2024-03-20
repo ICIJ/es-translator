@@ -201,7 +201,7 @@ class Argos(AbstractInterpreter):
                 installed_languages))[0]
         return source.get_translation(target)
 
-    def translate_text(self, text_input):
+    def translate(self, text_input):
         """
         Translates the input text from the source language to the target language.
 
