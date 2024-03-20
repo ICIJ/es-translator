@@ -99,23 +99,6 @@ class Argos(AbstractInterpreter):
         except AttributeError:
             return []
 
-    @property
-    def local_languages(self):
-        """
-        Gets the codes for the installed languages.
-
-        This method retrieves the installed languages and returns their codes as a list.
-        If an AttributeError is encountered, it returns an empty list.
-
-        Returns:
-            list of str: The codes for the installed languages.
-        """
-        try:
-            installed_languages = argostranslate.get_installed_languages()
-            return [lang.code for lang in installed_languages]
-        except AttributeError:
-            return []
-
     def update_package_index(self):
         """
         Updates the package index.
@@ -173,11 +156,11 @@ class Argos(AbstractInterpreter):
                 if self.is_package_installed(package):
                     return
                 download_path = package.download()
-                logger.info(f'Installing Argos package {package}')
+                logger.info('Installing Argos package %s', package)
                 return argospackage.install_from_path(download_path)
-        except Timeout:
+        except Timeout as exc:
             raise ArgosPackageDownloadLockTimeout(
-                f'Another instance of the program is downloading the package {package}. Please try again later.')
+                f'Another instance of the program is downloading the package {package}. Please try again later.') from exc
 
     def download_necessary_languages(self):
         """
@@ -218,14 +201,14 @@ class Argos(AbstractInterpreter):
                 installed_languages))[0]
         return source.get_translation(target)
 
-    def translate(self, input):
+    def translate_text(self, text_input):
         """
         Translates the input text from the source language to the target language.
 
         Args:
-            input (str): The input text in the source language.
+            text_input (str): The input text in the source language.
 
         Returns:
             str: The translated text in the target language.
         """
-        return self.translation.translate(input)
+        return self.translation.translate(text_input)
