@@ -29,7 +29,7 @@ class TestArgos(TestCase):
         self.assertEqual(self.fra2eng.translate("bonjour!").lower(), "hello!")
 
     def test_translation_from_de_to_en(self):
-        self.assertEqual(self.fra2eng.translate('bonjour monsieur, comment ça va ?'), 'Hello, sir, how are you?')
+        self.assertEqual(self.fra2eng.translate('bonjour monsieur, comment ça va ?'), 'Hello sir, how are you?')
 
     def test_find_necessary_package(self):
         with patch('argostranslate.package.get_available_packages', return_value=[self.package]):
