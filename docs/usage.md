@@ -165,7 +165,7 @@ so the task run as a service and can restart automaticaly in case of failure:
 
 ```bash
 sudo docker run \
-  --privileged true \
+  --privileged \
   --interactive \
   --tty \
   --detach \
