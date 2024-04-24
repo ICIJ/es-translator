@@ -126,7 +126,8 @@ def validate_max_content_length(ctx, param, value: str) -> int:
               default='redis://localhost:6379')
 @click.option('--max-content-length',
               help="Max translated content length (<[0-9]+[KMG]?>) to avoid highlight errors"
-                   "(see http://github.com/ICIJ/datashare#1184)",
+                   "(see http://github.com/ICIJ/datashare/issues/1184)",
+              default="36K",
               callback=validate_max_content_length)
 def translate(syslog_address, syslog_port, syslog_facility, **options):
     # Configure Syslog handler
