@@ -42,6 +42,10 @@ Options:
                                   processing them npw
   --broker-url TEXT               Celery broker URL (only needed when planning
                                   translation)
+  --max-content-length TEXT       Max translated content length
+                                  (<[0-9]+[KMG]?>) to avoid highlight
+                                  errors(see http://github.com/ICIJ/datashare/
+                                  issues/1184)
   --help                          Show this message and exit.
 ```
 
