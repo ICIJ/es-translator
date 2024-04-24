@@ -35,6 +35,10 @@ Options:
                                   processing them npw
   --broker-url TEXT               Celery broker URL (only needed when planning
                                   translation)
+  --max-content-length TEXT       Max translated content length
+                                  (&lt;[0-9]+[KMG]?&gt;) to avoid highlight
+                                  errors(see http://github.com/ICIJ/datashare/
+                                  issues/1184)
   --help                          Show this message and exit.
 </code></pre></div> <h3 id=es-translator-tasks><code>es-translator-tasks</code><a class=headerlink href=#es-translator-tasks title="Permanent link">&para;</a></h3> <p>This command allows you to run es-translator workers with Celery. This is particulary useful when you need to distribute the translation between different servers:</p> <div class=highlight><pre><span></span><code>Usage: es-translator-tasks [OPTIONS]
 
@@ -89,7 +93,7 @@ Options:
 <span class=w>  </span>--concurrency<span class=w> </span><span class=m>1</span><span class=w> </span><span class=se>\</span>
 <span class=w>  </span>--plan
 </code></pre></div> <p>You can run this command as many server as you want. In practice, we start it directly with a detached Docker container so the task run as a service and can restart automaticaly in case of failure:</p> <div class=highlight><pre><span></span><code>sudo<span class=w> </span>docker<span class=w> </span>run<span class=w> </span><span class=se>\</span>
-<span class=w>  </span>--privileged<span class=w> </span><span class=nb>true</span><span class=w> </span><span class=se>\</span>
+<span class=w>  </span>--privileged<span class=w> </span><span class=se>\</span>
 <span class=w>  </span>--interactive<span class=w> </span><span class=se>\</span>
 <span class=w>  </span>--tty<span class=w> </span><span class=se>\</span>
 <span class=w>  </span>--detach<span class=w> </span><span class=se>\</span>
