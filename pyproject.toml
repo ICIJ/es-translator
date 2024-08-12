@@ -17,11 +17,11 @@ pycountry = "^22.3"
 deb-pkg-tools = "^8.4"
 coloredlogs = "*"
 urllib3 = "^1.26"
-argostranslate = {git = "https://github.com/pirhoo/argos-translate"}
+argostranslate = "^1.9.6"
 rich = "^12"
-torch = "^2.2"
 celery = {extras = ["redis"], version = "^5.3.1"}
 filelock = "^3.12.2"
+torch = ">=2.3,<2.4"
 
 [tool.poetry.group.dev.dependencies]
 pyyaml = "*"
