@@ -9,7 +9,7 @@ Usage: es-translator [OPTIONS]
 
 Options:
   -u, --url TEXT                  Elastichsearch URL
-  -i, --index TEXT                Elastichsearch Index  [required]
+  -i, --index TEXT                Elastichsearch Index
   -r, --interpreter TEXT          Interpreter to use to perform the
                                   translation
   -s, --source-language TEXT      Source language to translate from
@@ -28,6 +28,8 @@ Options:
   --scan-scroll TEXT              Scroll duration (set to higher value if
                                   you're processing a lot of documents)
   --dry-run                       Don't save anything in Elasticsearch
+  -f, --force                     Override existing translation in
+                                  Elasticsearch
   --pool-size INTEGER             Number of parallel processes to start
   --pool-timeout INTEGER          Timeout to add a translation
   --throttle INTEGER              Throttle between each translation (in ms)
