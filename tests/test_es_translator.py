@@ -24,6 +24,7 @@ class EsTranslatorTestCase(unittest.TestCase):
             'data_dir': mkdtemp(),
             'scan_scroll': '5m',
             'dry_run': False,
+            'force': False,
             'pool_size': 4,
             'pool_timeout': 10,
             'throttle': 0.5,
