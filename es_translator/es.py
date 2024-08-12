@@ -32,10 +32,6 @@ class TranslatedHit():
         return self.hit.meta.index
 
     @property
-    def doc_type(self):
-        return self.hit.meta.doc_type
-
-    @property
     def body(self):
         body = dict(doc=dict())
         body['doc'][self.target_field] = self.translations
@@ -44,7 +40,6 @@ class TranslatedHit():
     def save(self, client):
         client.update(
             index=self.index,
-            doc_type=self.doc_type,
             id=self.id,
             routing=self.routing,
             body=self.body)
