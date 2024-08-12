@@ -97,6 +97,11 @@ def validate_max_content_length(ctx, param, value: str) -> int:
               help='Don\'t save anything in Elasticsearch',
               is_flag=True,
               default=False)
+@click.option('-f', 
+              '--force',
+              help='Override existing translation in Elasticsearch',
+              is_flag=True,
+              default=False)
 @click.option('--pool-size',
               help='Number of parallel processes to start',
               default=1)
@@ -127,7 +132,7 @@ def validate_max_content_length(ctx, param, value: str) -> int:
 @click.option('--max-content-length',
               help="Max translated content length (<[0-9]+[KMG]?>) to avoid highlight errors"
                    "(see http://github.com/ICIJ/datashare/issues/1184)",
-              default="36K",
+              default="19G",
               callback=validate_max_content_length)
 def translate(syslog_address, syslog_port, syslog_facility, **options):
     # Configure Syslog handler

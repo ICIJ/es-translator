@@ -37,6 +37,7 @@ class EsTranslator:
         self.data_dir = options['data_dir']
         self.scan_scroll = options['scan_scroll']
         self.dry_run = options.get('dry_run', False)
+        self.force = options['force']
         self.pool_size = options['pool_size']
         self.pool_timeout = options['pool_timeout']
         self.throttle = options['throttle']
@@ -98,6 +99,7 @@ class EsTranslator:
             'data_dir': self.data_dir,
             'scan_scroll': self.scan_scroll,
             'dry_run': self.dry_run,
+            'force': self.force,
             'pool_size': self.pool_size,
             'pool_timeout': self.pool_timeout,
             'throttle': self.throttle,
@@ -301,8 +303,7 @@ class EsTranslator:
             yield
 
     def create_translated_hit(self, hit):
-        return TranslatedHit(
-            hit, self.source_field, self.target_field)
+        return TranslatedHit(hit, self.source_field, self.target_field, self.force)
 
     def create_client(self):
         return Elasticsearch(self.url)

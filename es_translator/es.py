@@ -1,11 +1,14 @@
 class TranslatedHit():
     def __init__(self, hit, source_field='content',
-                 target_field='content_translated'):
+                 target_field='content_translated',
+                 force=False):
         self.hit = hit
         self.source_field = source_field
         self.target_field = target_field
         # Ensure the target field is an array
         self.hit[self.target_field] = self.translations
+        # Force translation even if it already exists
+        self.force = force
 
     @property
     def source_value(self):
@@ -47,7 +50,7 @@ class TranslatedHit():
             body=self.body)
 
     def add_translation(self, interpreter, max_content_length=-1):
-        if not self.is_translated(
+        if self.force or not self.is_translated(
                 interpreter.source_name,
                 interpreter.target_name,
                 interpreter.name):
