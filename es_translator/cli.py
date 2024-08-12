@@ -56,7 +56,7 @@ def validate_max_content_length(ctx, param, value: str) -> int:
 @click.command()
 @click.option('-u', '--url', help='Elastichsearch URL',
               default="http://localhost:9200")
-@click.option('-i', '--index', help='Elastichsearch Index', required=True)
+@click.option('-i', '--index', help='Elastichsearch Index', default='local-datashare')
 @click.option('-r',
               '--interpreter',
               help='Interpreter to use to perform the translation',
