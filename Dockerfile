@@ -11,9 +11,9 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN apt update -qq && apt install -qq -y lsb-release \
   python3 python3-pip dpkg-dev fakeroot lintian
 
-ENV POETRY_VERSION=1.3.1
+ENV POETRY_VERSION=1.8.0
 ENV PATH="${PATH}:/root/.poetry/bin"
-RUN pip install poetry==$POETRY_VERSION
+RUN pip install poetry==$POETRY_VERSION --break-system-packages
 
 WORKDIR /tmp
 ADD https://apertium.projectjj.com/apt/install-nightly.sh /tmp/install-nightly.sh
