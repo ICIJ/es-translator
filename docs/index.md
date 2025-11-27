@@ -1,6 +1,6 @@
 # ES Translator [![](https://img.shields.io/github/actions/workflow/status/icij/es-translator/main.yml)](https://github.com/ICIJ/es-translator/actions) [![](https://img.shields.io/pypi/pyversions/es-translator)](https://pypi.org/project/es-translator/) 
 
-A lazy yet bulletproof machine translation tool for Elastichsearch.
+A lazy yet bulletproof machine translation tool for Elasticsearch.
 
 ## Installation (Ubuntu)
 
@@ -31,8 +31,8 @@ docker run -it icij/es-translator es-translator --help
 Usage: es-translator [OPTIONS]
 
 Options:
-  -u, --url TEXT                  Elastichsearch URL
-  -i, --index TEXT                Elastichsearch Index
+  -u, --url TEXT                  Elasticsearch URL
+  -i, --index TEXT                Elasticsearch Index
   -r, --interpreter TEXT          Interpreter to use to perform the
                                   translation
   -s, --source-language TEXT      Source language to translate from
@@ -46,7 +46,7 @@ Options:
   --target-field TEXT             Document field where the translations are
                                   stored
   -q, --query-string TEXT         Search query string to filter result
-  -d, --data-dir PATH             Path to the directory where to language
+  -d, --data-dir PATH             Path to the directory where the language
                                   model will be downloaded
   --scan-scroll TEXT              Scroll duration (set to higher value if
                                   you're processing a lot of documents)
@@ -64,7 +64,7 @@ Options:
   --progressbar / --no-progressbar
                                   Display a progressbar
   --plan                          Plan translations into a queue instead of
-                                  processing them npw
+                                  processing them now
   --broker-url TEXT               Celery broker URL (only needed when planning
                                   translation)
   --max-content-length TEXT       Max translated content length

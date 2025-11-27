@@ -2,14 +2,14 @@
 
 ### `es-translator`
 
-This is the primarly command from EsTranslator to translate documents.
+This is the primary command from EsTranslator to translate documents.
 
 ```
 Usage: es-translator [OPTIONS]
 
 Options:
-  -u, --url TEXT                  Elastichsearch URL
-  -i, --index TEXT                Elastichsearch Index
+  -u, --url TEXT                  Elasticsearch URL
+  -i, --index TEXT                Elasticsearch Index
   -r, --interpreter TEXT          Interpreter to use to perform the
                                   translation
   -s, --source-language TEXT      Source language to translate from
@@ -23,7 +23,7 @@ Options:
   --target-field TEXT             Document field where the translations are
                                   stored
   -q, --query-string TEXT         Search query string to filter result
-  -d, --data-dir PATH             Path to the directory where to language
+  -d, --data-dir PATH             Path to the directory where the language
                                   model will be downloaded
   --scan-scroll TEXT              Scroll duration (set to higher value if
                                   you're processing a lot of documents)
@@ -41,7 +41,7 @@ Options:
   --progressbar / --no-progressbar
                                   Display a progressbar
   --plan                          Plan translations into a queue instead of
-                                  processing them npw
+                                  processing them now
   --broker-url TEXT               Celery broker URL (only needed when planning
                                   translation)
   --max-content-length TEXT       Max translated content length
@@ -53,7 +53,7 @@ Options:
 
 ### `es-translator-tasks`
 
-This command allows you to run es-translator workers with Celery. This is particulary useful when you
+This command allows you to run es-translator workers with Celery. This is particularly useful when you
 need to distribute the translation between different servers:
 
 ```
@@ -158,8 +158,7 @@ When this command is done, we can proceed to **translate from the broker list**:
 ```bash
 es-translator-tasks \
   --broker-url "redis://redis:6379" \
-  --concurrency 1 \
-  --plan
+  --concurrency 1
 ```
 
 You can run this command as many server as you want. In practice, we start it directly with a detached Docker container
@@ -175,7 +174,6 @@ sudo docker run \
   --name es-translator-tasks \
   icij/es-translator es-translator-tasks \
     --broker-url "redis://redis:6379" \
-    --concurrency 1 \
-    --plan
+    --concurrency 1
 ```
 
