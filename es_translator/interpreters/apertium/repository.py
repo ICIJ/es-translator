@@ -5,24 +5,63 @@ from glob import glob
 from os.path import basename, join, isfile, dirname, abspath
 from sh import dpkg_deb, mkdir, pushd, cp, rm
 from urllib import request
+import platform
+import re
 # Module from the same package
 from es_translator.alpha import to_alpha_2, to_alpha_3, to_alpha_3_pair
 from es_translator.logger import logger
 from es_translator.symlink import create_symlink
 
 REPOSITORY_URL = "https://apertium.projectjj.com/apt/nightly"
-PACKAGES_FILE_URL = "%s/dists/focal/main/binary-amd64/Packages" % REPOSITORY_URL
+
+
+def get_packages_file_url(arch=None):
+    """
+    Get the Packages file URL for the appropriate architecture.
+
+    Args:
+        arch: Architecture string ('amd64', 'i386', etc.). If None, auto-detect.
+
+    Returns:
+        URL string for the Packages file
+    """
+    if arch is None:
+        # Auto-detect architecture
+        machine = platform.machine().lower()
+        if machine in ('x86_64', 'amd64'):
+            arch = 'amd64'
+        elif machine in ('i386', 'i686'):
+            arch = 'i386'
+        else:
+            # Default to amd64 for other architectures
+            arch = 'amd64'
+            logger.warning('Unknown architecture %s, defaulting to amd64' % machine)
+
+    return "%s/dists/noble/main/binary-%s/Packages" % (REPOSITORY_URL, arch)
 
 
 class ApertiumRepository:
-    def __init__(self, cache_dir=None):
+    def __init__(self, cache_dir=None, arch=None):
+        """
+        Initialize the Apertium repository handler.
+
+        Args:
+            cache_dir: Directory for caching downloaded packages
+            arch: Architecture string ('amd64', 'i386'). If None, auto-detect.
+        """
         # Create a temporary pack dir (if needed)
         self.cache_dir = abspath(cache_dir)
+        self.arch = arch
+
+    @property
+    def packages_file_url(self):
+        """Get the Packages file URL for the configured architecture."""
+        return get_packages_file_url(self.arch)
 
     @property
     @lru_cache()
     def control_file_content(self):
-        response = request.urlopen(PACKAGES_FILE_URL)
+        response = request.urlopen(self.packages_file_url)
         data = response.read()
         return data.decode('utf-8')
 
@@ -67,16 +106,43 @@ class ApertiumRepository:
         except KeyError:
             return False
 
+    def find_latest_package_in_pool(self, package_name, filename):
+        logger.info('Attempting to find latest version from pool directory')
+        # Extract the pool directory path
+        filename_parts = filename.split('/')
+        pool_dir_url = REPOSITORY_URL + '/' + '/'.join(filename_parts[:-1]) + '/'
+        # Fetch the directory listing
+        response = request.urlopen(pool_dir_url)
+        html_content = response.read().decode('utf-8')
+        # Find all .deb files for this package
+        pattern = r'href="(' + re.escape(package_name) + r'_[^"]+\.deb)"'
+        matches = re.findall(pattern, html_content)
+        if matches:
+            # Use the last one (likely the newest)
+            latest_file = matches[-1]
+            package_url = pool_dir_url + latest_file
+            logger.info('Found latest version: %s' % latest_file)
+            return package_url
+        else:
+            raise Exception('Could not find package %s in pool directory' % package_name)
+
     def download_package(self, name, force=False):
         package = self.find_package(name)
-        package_url = REPOSITORY_URL + '/' + package['Filename']
         package_dir = join(self.cache_dir, name)
         package_file = join(package_dir, 'package') + '.deb'
         mkdir('-p', package_dir)
         # Don't download the file twice
         if force or not isfile(package_file):
             logger.info('Downloading package %s' % name)
-            request.urlretrieve(package_url, package_file)
+            # Try the URL from Packages file first
+            package_url = REPOSITORY_URL + '/' + package['Filename']
+            try:
+                request.urlretrieve(package_url, package_file)
+            except Exception as e:
+                # If that fails, try to find the latest version in the pool directory
+                logger.warning('Failed to download from Packages file URL: %s' % str(e))
+                package_url = self.find_latest_package_in_pool(name, package['Filename'])
+                request.urlretrieve(package_url, package_file)
         return package_file
 
     def download_pair_package(self, pair):
