@@ -65,7 +65,10 @@ jobs:
         run: |
           export VENV_PATH=$(poetry env info -p)
           export BEAM_FILE=$VENV_PATH/lib/python$PYTHON_VERSION/site-packages/stanza/models/common/beam.py
+          export PARSE_TRANSITIONS_FILE=$VENV_PATH/lib/python$PYTHON_VERSION/site-packages/stanza/models/constituency/parse_transitions.py
           sed -i '/"""/,/"""/ d' $BEAM_FILE
+          # Fix invalid escape sequence in parse_transitions.py for Python 3.12+
+          sed -i 's/\\Tree/\\\\Tree/g' $PARSE_TRANSITIONS_FILE
 
       - name: Run tests
         run: make test
