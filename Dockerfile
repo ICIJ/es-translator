@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 # Python 3 surrogate unicode handling
 # @see https://click.palletsprojects.com/en/7.x/python3/
