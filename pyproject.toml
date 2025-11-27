@@ -43,6 +43,7 @@ filterwarnings = [
     "error",
     "ignore::UserWarning",
     'ignore:pkg_resources is deprecated as an API',
+    "ignore:'pipes' is deprecated:DeprecationWarning",
 ]
 
 [build-system]

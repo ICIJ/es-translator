@@ -8,25 +8,30 @@ ENV TZ=US
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN apt update -qq && apt install -qq -y lsb-release \
-  python3 python3-pip dpkg-dev fakeroot lintian
+RUN apt-get update -qq && \
+    apt-get install -qq -y --no-install-recommends \
+    lsb-release python3 python3-pip dpkg-dev fakeroot lintian curl ca-certificates && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 ENV POETRY_VERSION=1.8.0
 ENV PATH="${PATH}:/root/.poetry/bin"
-RUN pip install poetry==$POETRY_VERSION --break-system-packages
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+RUN pip install poetry==$POETRY_VERSION
 
 WORKDIR /tmp
 ADD https://apertium.projectjj.com/apt/install-nightly.sh /tmp/install-nightly.sh
 RUN chmod +x ./install-nightly.sh && ./install-nightly.sh
 
-RUN apt update -qq && apt install -f -qq -y apertium-dev \
-  cg3 apertium-get apertium-lex-tools
+RUN apt-get update -qq && \
+    apt-get install -f -qq -y apertium-dev cg3 apertium-get apertium-lex-tools && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt/es-translator
 
 COPY pyproject.toml poetry.lock /opt/es-translator/
 RUN poetry config virtualenvs.create false --local
-RUN poetry install --no-root --no-interaction --no-ansi
+RUN poetry config installer.max-workers 10 --local
+RUN poetry install --no-root --no-interaction --no-ansi --no-cache
 
 COPY . .
 
