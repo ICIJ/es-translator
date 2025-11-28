@@ -12,6 +12,12 @@ install: poetry-install
 poetry-install:
 		poetry install
 
+lint:
+		poetry run ruff check es_translator/
+
+lint-fix:
+		poetry run ruff check --fix es_translator/
+
 test:
 		poetry run pytest
 
