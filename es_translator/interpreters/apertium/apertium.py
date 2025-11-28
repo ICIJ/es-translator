@@ -1,5 +1,12 @@
+"""Apertium interpreter for translation operations.
+
+This module provides the Apertium interpreter class that interfaces with the
+Apertium translation engine to perform language translations, including support
+for intermediary language pairs when direct translation is unavailable.
+"""
 from tempfile import NamedTemporaryFile
 from functools import lru_cache
+from typing import Dict, List, Optional
 from sh import apertium, ErrorReturnCode
 # Module from the same package
 from .repository import ApertiumRepository
@@ -9,36 +16,71 @@ from ...logger import logger
 
 
 class Apertium(AbstractInterpreter):
+    """Apertium translation interpreter.
+
+    Provides translation capabilities using the Apertium translation engine,
+    with support for direct translation and intermediary language pairs.
+
+    Attributes:
+        name: Identifier for this interpreter ('APERTIUM').
+        repository: ApertiumRepository instance for package management.
+    """
     name = 'APERTIUM'
 
     def __init__(
             self,
-            source=None,
-            target=None,
-            intermediary=None,
-            pack_dir=None):
+            source: Optional[str] = None,
+            target: Optional[str] = None,
+            intermediary: Optional[str] = None,
+            pack_dir: Optional[str] = None) -> None:
+        """Initialize the Apertium interpreter.
+
+        Args:
+            source: Source language code.
+            target: Target language code.
+            intermediary: Optional intermediary language for indirect translation.
+            pack_dir: Directory for storing translation packages.
+
+        Raises:
+            Exception: If the language pair is not available in the repository.
+        """
         super().__init__(source, target, intermediary, pack_dir)
         # A class to download necessary pair package
         self.repository = ApertiumRepository(self.pack_dir)
-        # Raise an exception if the language pair is unkown
+        # Raise an exception if the language pair is unknown
         if not self.is_pair_available and self.has_pair:
             try:
                 self.download_necessary_pairs()
             except StopIteration:
                 raise Exception('The pair is not available')
         else:
-            logger.info('Existing package(s) found for pair %s' % self.pair)
+            logger.info(f'Existing package(s) found for pair {self.pair}')
 
     @property
-    def pair_package(self):
+    def pair_package(self) -> Optional[str]:
+        """Get the package name for the current language pair.
+
+        Returns:
+            Package name string or None if not found.
+        """
         return self.pair_to_pair_package(self.pair)
 
     @property
-    def is_pair_available(self):
+    def is_pair_available(self) -> bool:
+        """Check if the language pair is available locally.
+
+        Returns:
+            True if pair is available without intermediary.
+        """
         return not self.intermediary and self.pair in self.local_pairs
 
     @property
-    def pairs_pipeline(self):
+    def pairs_pipeline(self) -> List[str]:
+        """Get the translation pipeline (direct or via intermediary).
+
+        Returns:
+            List of language pair codes to process sequentially.
+        """
         if self.intermediary:
             return [
                 self.intermediary_source_pair,
@@ -47,23 +89,51 @@ class Apertium(AbstractInterpreter):
             return [self.pair_alpha_3]
 
     @property
-    def intermediary_source_pair(self):
-        return '%s-%s' % (self.source_alpha_3, self.intermediary_alpha_3)
+    def intermediary_source_pair(self) -> str:
+        """Get source-to-intermediary language pair.
+
+        Returns:
+            Language pair string (e.g., 'eng-spa').
+        """
+        return f'{self.source_alpha_3}-{self.intermediary_alpha_3}'
 
     @property
-    def intermediary_source_pair_package(self):
+    def intermediary_source_pair_package(self) -> Optional[str]:
+        """Get package name for source-to-intermediary pair.
+
+        Returns:
+            Package name string or None if not found.
+        """
         return self.pair_to_pair_package(self.intermediary_source_pair)
 
     @property
-    def intermediary_target_pair(self):
-        return '%s-%s' % (self.intermediary_alpha_3, self.target_alpha_3)
+    def intermediary_target_pair(self) -> str:
+        """Get intermediary-to-target language pair.
+
+        Returns:
+            Language pair string (e.g., 'spa-fra').
+        """
+        return f'{self.intermediary_alpha_3}-{self.target_alpha_3}'
 
     @property
-    def intermediary_target_pair_package(self):
+    def intermediary_target_pair_package(self) -> Optional[str]:
+        """Get package name for intermediary-to-target pair.
+
+        Returns:
+            Package name string or None if not found.
+        """
         return self.pair_to_pair_package(self.intermediary_target_pair)
 
     @property
-    def intermediary_pairs(self):
+    def intermediary_pairs(self) -> List[str]:
+        """Get intermediary language pairs for indirect translation.
+
+        Automatically finds an intermediary language if not specified
+        by building a language tree and finding a path from source to target.
+
+        Returns:
+            List of two language pair strings for indirect translation.
+        """
         # Find the intermediary lang only if not given
         if self.intermediary is None:
             trunk_packages = [s.split('-') for s in self.remote_pairs]
@@ -77,16 +147,30 @@ class Apertium(AbstractInterpreter):
         return [self.intermediary_source_pair, self.intermediary_target_pair]
 
     @property
-    def local_pairs(self):
+    def local_pairs(self) -> List[str]:
+        """Get locally installed language pairs.
+
+        Returns:
+            List of locally available language pair codes.
+        """
         output = apertium('-d', self.pack_dir, '-l').strip()
         return [s.strip() for s in output.split('\n')]
 
     @property
     @lru_cache()
-    def remote_pairs(self, module='trunk'):
+    def remote_pairs(self, module: str = 'trunk') -> List[str]:
+        """Get remotely available language pairs from repository.
+
+        Args:
+            module: Repository module to query (default: 'trunk').
+
+        Returns:
+            List of available language pair codes from the repository.
+        """
         packages = self.repository.pair_packages
         pairs = []
-        def package_name_to_pair(n): return '-'.join(n.split('-')[-2:])
+        def package_name_to_pair(n: str) -> str:
+            return '-'.join(n.split('-')[-2:])
         # Extract package within these two properties
         for attr in ['Package', 'Provides']:
             for package in packages:
@@ -96,7 +180,17 @@ class Apertium(AbstractInterpreter):
         # Remove empty values
         return [p for p in pairs if p != '']
 
-    def pair_to_pair_package(self, pair):
+    def pair_to_pair_package(self, pair: str) -> Optional[str]:
+        """Convert language pair to package name.
+
+        Checks both the pair and its reverse for availability in remote packages.
+
+        Args:
+            pair: Language pair string (e.g., 'en-es').
+
+        Returns:
+            Package name if found, None otherwise.
+        """
         pair_inversed = '-'.join(pair.split('-')[::-1])
         combinations = [to_alpha_3_pair(pair), to_alpha_3_pair(pair_inversed)]
         try:
@@ -104,14 +198,27 @@ class Apertium(AbstractInterpreter):
         except StopIteration:
             return None
 
-    def download_necessary_pairs(self):
-        logger.info('Downloading necessary package(s) for %s' % self.pair)
+    def download_necessary_pairs(self) -> None:
+        """Download required language pair packages.
+
+        Downloads either a direct pair or intermediary pairs depending on
+        availability in the repository.
+        """
+        logger.info(f'Downloading necessary package(s) for {self.pair}')
         if self.any_pair_variant_in_packages:
             self.download_pair()
         else:
             self.download_intermediary_pairs()
 
-    def download_pair(self, pair=None):
+    def download_pair(self, pair: Optional[str] = None) -> str:
+        """Download and install a specific language pair package.
+
+        Args:
+            pair: Language pair to download. If None, uses current pair.
+
+        Returns:
+            Path to the installed package directory.
+        """
         if pair is None:
             pair = self.pair_alpha_3
         else:
@@ -120,14 +227,30 @@ class Apertium(AbstractInterpreter):
         return self.repository.install_pair_package(pair)
 
     @property
-    def any_pair_variant_in_packages(self):
+    def any_pair_variant_in_packages(self) -> bool:
+        """Check if any variant of the current pair exists in packages.
+
+        Returns:
+            True if the pair is available in remote repository.
+        """
         return self.pair_alpha_3 in self.remote_pairs
 
-    def download_intermediary_pairs(self):
+    def download_intermediary_pairs(self) -> None:
+        """Download both intermediary language pairs for indirect translation."""
         for pair in self.intermediary_pairs:
             self.download_pair(pair)
 
-    def lang_tree(self, lang, pairs, depth=2):
+    def lang_tree(self, lang: str, pairs: List[List[str]], depth: int = 2) -> Dict:
+        """Build a tree of language connections from available pairs.
+
+        Args:
+            lang: Root language for the tree.
+            pairs: List of language pair lists.
+            depth: Maximum depth to traverse (default: 2).
+
+        Returns:
+            Dictionary tree structure with 'lang' and 'children' keys.
+        """
         tree = dict(lang=lang, children=dict())
         for pair in pairs:
             if lang in pair and depth > 0:
@@ -136,7 +259,16 @@ class Apertium(AbstractInterpreter):
                     child_lang, pairs, depth - 1)
         return tree
 
-    def first_pairs_path(self, leaf, lang):
+    def first_pairs_path(self, leaf: Dict, lang: str) -> List[str]:
+        """Find the first path from a tree leaf to a target language.
+
+        Args:
+            leaf: Tree node dictionary with 'lang' and 'children' keys.
+            lang: Target language to find path to.
+
+        Returns:
+            List of language codes forming the path.
+        """
         path = []
         for child_leaf in leaf['children'].values():
             if self.leaf_has_lang(child_leaf, lang):
@@ -145,20 +277,51 @@ class Apertium(AbstractInterpreter):
                 break
         return path
 
-    def leaf_has_lang(self, leaf, lang):
+    def leaf_has_lang(self, leaf: Dict, lang: str) -> bool:
+        """Check if a tree leaf contains or leads to a target language.
+
+        Args:
+            leaf: Tree node dictionary with 'lang' and 'children' keys.
+            lang: Target language to search for.
+
+        Returns:
+            True if the language is found in the leaf or its descendants.
+        """
         children = leaf['children'].values()
         return lang in leaf['children'] or any(
             self.leaf_has_lang(
                 child_leaf,
                 lang) for child_leaf in children)
 
-    def translate(self, input):
+    def translate(self, input: str) -> str:
+        """Translate text through the translation pipeline.
+
+        If using an intermediary language, translates through multiple pairs.
+
+        Args:
+            input: Text to translate.
+
+        Returns:
+            Translated text string.
+        """
         for pair in self.pairs_pipeline:
-            # Create a sub-process witch can receive a input
+            # Create a sub-process which can receive an input
             input = self.translate_with_apertium(input, pair)
         return input
 
-    def translate_with_apertium(self, input, pair):
+    def translate_with_apertium(self, input: str, pair: str) -> str:
+        """Translate text using Apertium for a specific language pair.
+
+        Args:
+            input: Text to translate.
+            pair: Language pair code (e.g., 'eng-spa').
+
+        Returns:
+            Translated text string.
+
+        Raises:
+            Exception: If translation fails.
+        """
         try:
             # Works with a temporary file as buffer (opened in text mode)
             with NamedTemporaryFile(mode='w+t') as temp_input_file:

@@ -1,8 +1,12 @@
-import re
+"""Command-line interface for es-translator.
 
+This module provides Click-based CLI commands for translating Elasticsearch documents,
+managing translation workers, and listing available language pairs.
+"""
+import re
 import click
 import logging
-
+from typing import Any, Optional
 from tempfile import mkdtemp
 
 from es_translator import EsTranslator
@@ -13,7 +17,20 @@ from es_translator.logger import add_syslog_handler, add_stdout_handler
 from es_translator.tasks import app as celery_app
 
 
-def validate_loglevel(ctx, param, value):
+def validate_loglevel(ctx: click.Context, param: click.Parameter, value: Any) -> int:
+    """Validate and convert log level parameter.
+
+    Args:
+        ctx: Click context.
+        param: Click parameter.
+        value: Log level string or integer.
+
+    Returns:
+        Log level as integer.
+
+    Raises:
+        click.BadParameter: If value is not a valid log level.
+    """
     try:
         if isinstance(value, str):
             return getattr(logging, value)
@@ -23,24 +40,61 @@ def validate_loglevel(ctx, param, value):
             'must be a valid log level (CRITICAL, ERROR, WARNING, INFO, DEBUG or NOTSET)')
 
 
-def validate_progressbar(ctx, param, value):
-    # If no value given, we activate the progress bar only when the
-    # stdout_loglevel value is higher than INFO (20)
+def validate_progressbar(ctx: click.Context, param: click.Parameter, value: Optional[bool]) -> bool:
+    """Validate progressbar option.
+
+    If no value given, activate progress bar only when stdout_loglevel > INFO (20).
+
+    Args:
+        ctx: Click context.
+        param: Click parameter.
+        value: Optional boolean value.
+
+    Returns:
+        True if progress bar should be shown.
+    """
     return value if value is not None else ctx.params['stdout_loglevel'] > 20
 
 
-def validate_interpreter(ctx, param, value):
+def validate_interpreter(ctx: click.Context, param: click.Parameter, value: str) -> str:
+    """Validate interpreter name parameter.
+
+    Args:
+        ctx: Click context.
+        param: Click parameter.
+        value: Interpreter name string.
+
+    Returns:
+        Validated interpreter name.
+
+    Raises:
+        click.BadParameter: If interpreter name is not valid.
+    """
     interpreters = (Apertium, Argos, )
     for interpreter in interpreters:
         if value.upper() == interpreter.name.upper():
             return interpreter.name
     names = (interpreter.name for interpreter in interpreters)
     raise click.BadParameter(
-        'must be a valid interpreter name (%s)' %
-        ', '.join(names))
+        f'must be a valid interpreter name ({", ".join(names)})')
 
 
-def validate_max_content_length(ctx, param, value: str) -> int:
+def validate_max_content_length(ctx: click.Context, param: click.Parameter, value: str) -> int:
+    """Validate and convert max content length parameter.
+
+    Accepts values like '100', '10K', '5M', '2G' and converts to bytes.
+
+    Args:
+        ctx: Click context.
+        param: Click parameter.
+        value: Content length string with optional K/M/G suffix.
+
+    Returns:
+        Content length in bytes as integer.
+
+    Raises:
+        click.BadParameter: If format is invalid.
+    """
     if re.match('[0-9]+[KMG]?$', value):
         if value.endswith('K'):
             return int(value[:-1]) * 1024
@@ -134,14 +188,25 @@ def validate_max_content_length(ctx, param, value: str) -> int:
                    "(see http://github.com/ICIJ/datashare/issues/1184)",
               default="19G",
               callback=validate_max_content_length)
-def translate(syslog_address, syslog_port, syslog_facility, **options):
+def translate(syslog_address: str, syslog_port: int, syslog_facility: str, **options: Any) -> None:
+    """Translate documents in an Elasticsearch index.
+
+    Main command for translating documents using various interpreters (Argos, Apertium).
+    Can run immediately or queue translations for later execution.
+
+    Args:
+        syslog_address: Syslog server address.
+        syslog_port: Syslog server port.
+        syslog_facility: Syslog facility name.
+        **options: Additional options from Click decorators.
+    """
     # Configure Syslog handler
     add_syslog_handler(syslog_address, syslog_port, syslog_facility)
     add_stdout_handler(options['stdout_loglevel'])
     # Configure celery app broker url globally
     celery_app.conf.broker_url = options['broker_url']
-    # We setup the translator. Etheir if the translation is done now
-    # or later, we need initialize the interpreter (Argos, Apertium, ...)
+    # We setup the translator. Either if the translation is done now
+    # or later, we need to initialize the interpreter (Argos, Apertium, ...)
     es_translator = EsTranslator(options)
     es_translator.start()
         
@@ -154,8 +219,14 @@ def translate(syslog_address, syslog_port, syslog_facility, **options):
               help='Change the default log level for stdout error handler',
               default='ERROR',
               callback=validate_loglevel)
-def tasks(broker_url, concurrency, stdout_loglevel):
-    """Starts a Celery worker."""
+def tasks(broker_url: str, concurrency: int, stdout_loglevel: int) -> None:
+    """Start a Celery worker for processing queued translations.
+
+    Args:
+        broker_url: Celery broker URL (e.g., 'redis://localhost:6379').
+        concurrency: Number of concurrent worker processes.
+        stdout_loglevel: Log level for stdout output.
+    """
     celery_app.conf.broker_url = broker_url
     argv = [
         'worker',
@@ -184,12 +255,22 @@ def tasks(broker_url, concurrency, stdout_loglevel):
               default='ERROR',
               callback=validate_loglevel)
 def pairs(
-        data_dir,
-        local,
-        syslog_address,
-        syslog_port,
-        syslog_facility,
-        **options):
+        data_dir: str,
+        local: bool,
+        syslog_address: str,
+        syslog_port: int,
+        syslog_facility: str,
+        **options: Any) -> None:
+    """List available Apertium language pairs.
+
+    Args:
+        data_dir: Directory for language pack storage.
+        local: If True, list only locally installed pairs.
+        syslog_address: Syslog server address.
+        syslog_port: Syslog server port.
+        syslog_facility: Syslog facility name.
+        **options: Additional options from Click decorators.
+    """
     # Configure Syslog handler
     add_syslog_handler(syslog_address, syslog_port, syslog_facility)
     add_stdout_handler(options['stdout_loglevel'])

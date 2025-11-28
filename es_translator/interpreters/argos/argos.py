@@ -1,5 +1,10 @@
-import tempfile
+"""Argos interpreter for translation operations.
 
+This module provides the Argos interpreter class that interfaces with the
+argostranslate library for neural machine translation between languages.
+"""
+import tempfile
+from typing import List, Optional, Any
 from argostranslate import package as argospackage
 from argostranslate import translate as argostranslate
 from pathlib import Path
@@ -10,72 +15,65 @@ from ...logger import logger
 
 
 class ArgosPairNotAvailable(Exception):
-    """
-    Exception raised when the necessary language pair is not available for download.
-    """
+    """Exception raised when the necessary language pair is not available for download."""
 
 
 class ArgosPackageDownloadLockTimeout(Exception):
-    """
-    Exception raised when the necessary language cannot be downloaded after a lock reach its timeout.
-    """
+    """Exception raised when the necessary language cannot be downloaded after a lock reaches its timeout."""
 
 
 class Argos(AbstractInterpreter):
-    """
-    Argos is a class that extends the AbstractInterpreter.
+    """Argos translation interpreter using argostranslate.
 
-    This class is responsible for handling translation tasks, specifically using the Argos interpreter.
+    This class handles translation tasks using the Argos neural machine
+    translation engine. Note that Argos does not support intermediary
+    languages or custom package directories.
 
     Attributes:
-        name (str): The name of the interpreter.
+        name: Identifier for this interpreter ('ARGOS').
     """
     name = 'ARGOS'
 
     def __init__(
             self,
-            source=None,
-            target=None,
-            intermediary=None,
-            pack_dir=None):
-        """
-        Initializes the Argos interpreter with source and target language codes.
-
-        The function also checks if the necessary language pair is available, and downloads it if necessary.
+            source: Optional[str] = None,
+            target: Optional[str] = None,
+            intermediary: Optional[str] = None,
+            pack_dir: Optional[str] = None) -> None:
+        """Initialize the Argos interpreter.
 
         Args:
-            source (str): The source language code.
-            target (str): The target language code.
-            intermediary (str, optional): The intermediary language code. Defaults to None.
-            pack_dir (str, optional): The directory of language packs. This option will be ignored. Defaults to None.
+            source: Source language code.
+            target: Target language code.
+            intermediary: Intermediary language code (not supported, will warn if provided).
+            pack_dir: Directory for language packs (not supported, will warn if provided).
 
         Raises:
-            Exception: If the necessary language pair is not available and cannot be downloaded.
+            Exception: If the necessary language pair is not available.
         """
         super().__init__(source, target)
-        # Raise an exception if an intermediary language is provded
+        # Raise an exception if an intermediary language is provided
         if intermediary is not None:
             logger.warn(
-                'Argos interpreter doesnt support intermediary language')
+                'Argos interpreter does not support intermediary language')
         if pack_dir is not None:
             logger.warn(
-                'Argos interpreter doesnt support custom pack directory')
-        # Raise an exception if the language pair is unkown
+                'Argos interpreter does not support custom pack directory')
+        # Raise an exception if the language pair is unknown
         if not self.is_pair_available and self.has_pair:
             try:
                 self.download_necessary_languages()
             except ArgosPairNotAvailable:
-                raise Exception('The pair %s is not available' % self.pair)
+                raise Exception(f'The pair {self.pair} is not available')
         else:
-            logger.info('Existing package(s) found for pair %s' % self.pair)
+            logger.info(f'Existing package(s) found for pair {self.pair}')
 
     @property
-    def is_pair_available(self):
-        """
-        Checks if the necessary language pair is available in the installed packages.
+    def is_pair_available(self) -> bool:
+        """Check if the necessary language pair is available in installed packages.
 
         Returns:
-            bool: True if the language pair is available, False otherwise.
+            True if the language pair is available, False otherwise.
         """
         for package in argospackage.get_installed_packages():
             if package.from_code == self.source_alpha_2 and package.to_code == self.target_alpha_2:
@@ -83,15 +81,11 @@ class Argos(AbstractInterpreter):
         return False
 
     @property
-    def local_languages(self):
-        """
-        Gets the codes for the installed languages.
-
-        This method retrieves the installed languages and returns their codes as a list.
-        If an AttributeError is encountered, it returns an empty list.
+    def local_languages(self) -> List[str]:
+        """Get the codes for the installed languages.
 
         Returns:
-            list of str: The codes for the installed languages.
+            List of installed language codes. Returns empty list if languages cannot be retrieved.
         """
         try:
             installed_languages = argostranslate.get_installed_languages()
@@ -99,21 +93,17 @@ class Argos(AbstractInterpreter):
         except AttributeError:
             return []
 
-    def update_package_index(self):
-        """
-        Updates the package index.
-        """
+    def update_package_index(self) -> None:
+        """Update the Argos package index to fetch latest available packages."""
         argospackage.update_package_index()
 
-    def find_necessary_package(self):
-        """
-        Finds the necessary language package.
+    def find_necessary_package(self) -> Any:
+        """Find the necessary language package.
 
-        This method loops over the available packages to find the necessary package based on the source and target language codes.
-        If the package cannot be found, it raises an ArgosPairNotAvailable exception.
+        Searches available packages for one matching the source and target languages.
 
         Returns:
-            Package: The necessary language package.
+            The necessary language package object.
 
         Raises:
             ArgosPairNotAvailable: If the necessary language package could not be found.
@@ -123,72 +113,71 @@ class Argos(AbstractInterpreter):
                 return package
         raise ArgosPairNotAvailable
 
-    def is_package_installed(self, package):
-        """
-        Checks if a package is installed.
+    def is_package_installed(self, package: Any) -> bool:
+        """Check if a package is installed.
 
         Args:
-            package (Package): The package to check.
+            package: The package to check.
 
         Returns:
-            bool: True if the package is installed, False otherwise.
+            True if the package is installed, False otherwise.
         """
         return package in argospackage.get_installed_packages()
 
-    def download_and_install_package(self, package):
-        """
-        Downloads and installs a language package.
+    def download_and_install_package(self, package: Any) -> Optional[Any]:
+        """Download and install a language package.
 
-        This method locks the download using a file lock based on the package's source and target language codes.
-        If the package is not installed, it is downloaded and installed.
+        Uses file locking to prevent concurrent downloads of the same package.
+        Skips installation if the package is already installed.
 
         Args:
-            package (Package): The package to download and install.
+            package: The package to download and install.
+
+        Returns:
+            Installation result or None if package was already installed.
 
         Raises:
-            Timeout: If a lock on the download path cannot be acquired within the timeout duration.
+            ArgosPackageDownloadLockTimeout: If lock cannot be acquired within timeout.
         """
         try:
             temp_dir = Path(tempfile.gettempdir())
             lock_path = temp_dir / f'{package.from_code}_{package.to_code}.lock'
-            
+
             with FileLock(lock_path, timeout=600).acquire(timeout=600):
                 if self.is_package_installed(package):
-                    return
+                    return None
                 download_path = package.download()
-                logger.info('Installing Argos package %s', package)
+                logger.info(f'Installing Argos package {package}')
                 return argospackage.install_from_path(download_path)
         except Timeout as exc:
             raise ArgosPackageDownloadLockTimeout(
                 f'Another instance of the program is downloading the package {package}. Please try again later.') from exc
 
-    def download_necessary_languages(self):
-        """
-        Downloads necessary language packages if they are not installed already.
+    def download_necessary_languages(self) -> None:
+        """Download necessary language packages if not installed.
 
-        This method performs the following steps:
+        Steps:
         1. Updates the package index.
         2. Finds the necessary package.
         3. Downloads and installs the package.
 
         Raises:
             ArgosPairNotAvailable: If the necessary language package could not be found.
-            Timeout: If a lock on the download path cannot be acquired within the timeout duration.
+            ArgosPackageDownloadLockTimeout: If lock cannot be acquired within timeout.
         """
         self.update_package_index()
         necessary_package = self.find_necessary_package()
         self.download_and_install_package(necessary_package)
 
     @property
-    def translation(self):
-        """
-        Returns a Translation object for the source and target languages.
-
-        Raises:
-            Exception: If either the source or target language is not installed.
+    def translation(self) -> Any:
+        """Get Translation object for the source and target languages.
 
         Returns:
-            Translation: The Translation object for the source and target languages.
+            Translation object configured for source to target language.
+
+        Raises:
+            IndexError: If either the source or target language is not installed.
         """
         installed_languages = argostranslate.get_installed_languages()
         source = list(
@@ -201,14 +190,13 @@ class Argos(AbstractInterpreter):
                 installed_languages))[0]
         return source.get_translation(target)
 
-    def translate(self, text_input):
-        """
-        Translates the input text from the source language to the target language.
+    def translate(self, text_input: str) -> str:
+        """Translate input text from source language to target language.
 
         Args:
-            text_input (str): The input text in the source language.
+            text_input: The input text in the source language.
 
         Returns:
-            str: The translated text in the target language.
+            The translated text in the target language.
         """
         return self.translation.translate(text_input)

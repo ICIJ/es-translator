@@ -1,3 +1,8 @@
+"""Elasticsearch translator for automated document translation.
+
+This module provides the main EsTranslator class that orchestrates the translation
+of documents in Elasticsearch indices using various translation interpreters.
+"""
 import sys
 from coloredlogs import StandardErrorHandler
 from contextlib import contextmanager
@@ -9,7 +14,7 @@ from os import path
 
 from elasticsearch_dsl.utils import ObjectBase
 from rich.progress import Progress
-from typing import Any, ContextManager, Dict, List
+from typing import Any, ContextManager, Dict, List, Optional
 
 # Module from the same package
 from es_translator.interpreters import Apertium, Argos
@@ -20,11 +25,39 @@ from es_translator.es import TranslatedHit
 
 
 class EsTranslator:
-    def __init__(self, options: Dict[str, Any]):
+    """Orchestrates translation of Elasticsearch documents.
+
+    Manages the translation workflow including searching for documents,
+    parallel translation using worker pools, and updating translated documents.
+
+    Attributes:
+        url: Elasticsearch URL.
+        index: Index name to search and update.
+        source_language: Source language code.
+        target_language: Target language code.
+        intermediary_language: Optional intermediary language for indirect translation.
+        source_field: Field name containing source text.
+        target_field: Field name to store translated text.
+        query_string: Optional Elasticsearch query string.
+        data_dir: Directory for storing interpreter data.
+        scan_scroll: Scroll timeout for search.
+        dry_run: If True, skip saving translated documents.
+        force: Force re-translation of already translated documents.
+        pool_size: Number of parallel worker processes.
+        pool_timeout: Timeout for worker pool operations.
+        throttle: Throttle for rate limiting.
+        progressbar: Show progress bar during translation.
+        interpreter_name: Name of translation interpreter to use.
+        max_content_length: Maximum content length to translate (-1 for unlimited).
+        plan: If True, queue translations for later execution.
+        interpreter: Instantiated interpreter instance.
+    """
+
+    def __init__(self, options: Dict[str, Any]) -> None:
         """Initialize the Elasticsearch translator.
 
         Args:
-            options (Dict[str, Any]): A dictionary of options needed to set up the translator.
+            options: Dictionary of configuration options.
         """
         self.url = options['url']
         self.index = options['index']
@@ -63,10 +96,10 @@ class EsTranslator:
             self.start_now()
 
     def start_now(self) -> None:
-        """Starts the translation process."""
+        """Start the translation process immediately."""
         self.instantiate_interpreter()
         total = self.search().count()
-        desc = 'Translating %s document(s)' % total
+        desc = f'Translating {total} document(s)'
         with self.print_done(desc):
             search = self.configure_search()
             translation_queue = self.create_translation_queue()
@@ -74,8 +107,8 @@ class EsTranslator:
                 self.translate_documents_in_pool(
                     search, translation_queue, shared_fatal_error, total)
 
-    def start_later(self):
-        """Plan the translation process."""
+    def start_later(self) -> None:
+        """Queue translation tasks for later execution via Celery."""
         self.instantiate_interpreter()
         total = self.search().count()
         desc = f"Planning translation for {total} document{'s'[:total^1]}"
@@ -86,7 +119,12 @@ class EsTranslator:
                 translate_document_task.delay(self.options, hit.meta.to_dict())
 
     @property
-    def options(self):
+    def options(self) -> Dict[str, Any]:
+        """Get configuration options as a dictionary.
+
+        Returns:
+            Dictionary containing all configuration options.
+        """
         return {
             'url': self.url,
             'index': self.index,
@@ -160,7 +198,15 @@ class EsTranslator:
         with Manager() as manager:
             yield manager.Value('b', None)
 
-    def find_document(self, params: Dict[str, str]):
+    def find_document(self, params: Dict[str, str]) -> Document:
+        """Find a document by ID and routing.
+
+        Args:
+            params: Dictionary containing 'index', 'id', and optionally 'routing'.
+
+        Returns:
+            The found Document object.
+        """
         using = self.create_client()
         routing = getattr(params, 'routing', params['id'])
         return Document.get(
@@ -169,7 +215,12 @@ class EsTranslator:
             routing=routing,
             using=using)
 
-    def translate_document(self, hit: ObjectBase):
+    def translate_document(self, hit: ObjectBase) -> None:
+        """Translate a single document.
+
+        Args:
+            hit: Document hit object to translate.
+        """
         self.instantiate_interpreter()
         # Translate the document
         logger.info(f'Translating doc {hit.meta.id}')
@@ -255,12 +306,12 @@ class EsTranslator:
             pack_dir)
 
     def print_flush(self, string: str) -> None:
-        """Prints and flushes a string to stdout.
+        """Print and flush a string to stdout.
 
         Args:
-            string (str): The string to be printed.
+            string: The string to be printed.
         """
-        sys.stdout.write('\r{0}'.format(string))
+        sys.stdout.write(f'\r{string}')
         sys.stdout.flush()
 
     @property
@@ -280,30 +331,43 @@ class EsTranslator:
 
     @contextmanager
     def print_done(self, string: str) -> ContextManager:
-        """Prints a string and yields.
+        """Print progress message and yield, showing done/error status.
 
         Args:
-            string (str): The string to be printed.
+            string: The status message to be printed.
 
         Returns:
-            ContextManager: A context manager.
+            Context manager for wrapping operations with status output.
         """
         logger.info(string)
         if self.stdout_loglevel > 20:
-            string = '\r%s...' % string
+            string = f'\r{string}...'
             self.print_flush(string)
             try:
                 yield
-                print('{0} \033[92mdone\033[0m'.format(string))
+                print(f'{string} \033[92mdone\033[0m')
             except (FatalTranslationException, ElasticsearchException, Full) as error:
                 logger.error(error, exc_info=True)
-                print('{0} \033[91merror\033[0m'.format(string))
+                print(f'{string} \033[91merror\033[0m')
                 sys.exit(1)
         else:
             yield
 
-    def create_translated_hit(self, hit):
+    def create_translated_hit(self, hit: ObjectBase) -> TranslatedHit:
+        """Create a TranslatedHit wrapper for a document hit.
+
+        Args:
+            hit: Document hit object.
+
+        Returns:
+            TranslatedHit instance ready for translation.
+        """
         return TranslatedHit(hit, self.source_field, self.target_field, self.force)
 
-    def create_client(self):
+    def create_client(self) -> Elasticsearch:
+        """Create an Elasticsearch client instance.
+
+        Returns:
+            Configured Elasticsearch client.
+        """
         return Elasticsearch(self.url)
