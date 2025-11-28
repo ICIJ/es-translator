@@ -1,5 +1,6 @@
 import os
-from typing import Any, Dict
+from typing import Any
+
 from celery import Celery
 
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
@@ -10,7 +11,7 @@ app.conf.task_default_queue = 'es_translator:default'
 
 @app.task
 def translate_document_task(
-        translator_options: Dict[str, Any], document_params: Dict[str, Any]) -> None:
+        translator_options: dict[str, Any], document_params: dict[str, Any]) -> None:
     """Celery task to translate a document.
 
     Args:

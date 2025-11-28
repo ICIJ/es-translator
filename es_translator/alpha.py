@@ -21,4 +21,4 @@ def to_name(alpha_2):
 
 def to_alpha_3_pair(pair):
     [source, target] = pair.split('-')
-    return '%s-%s' % (to_alpha_3(source), to_alpha_3(target))
+    return f'{to_alpha_3(source)}-{to_alpha_3(target)}'

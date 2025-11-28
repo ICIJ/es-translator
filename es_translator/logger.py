@@ -1,9 +1,9 @@
 import logging
 import sys
+from logging.handlers import SysLogHandler
 from syslog import LOG_LOCAL7
 
 import coloredlogs
-from logging.handlers import SysLogHandler
 
 logger = logging.getLogger('es-translator')
 logger.setLevel(logging.INFO)

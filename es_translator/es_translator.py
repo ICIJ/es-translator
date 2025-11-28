@@ -4,24 +4,26 @@ This module provides the main EsTranslator class that orchestrates the translati
 of documents in Elasticsearch indices using various translation interpreters.
 """
 import sys
-from coloredlogs import StandardErrorHandler
+from collections.abc import Generator
 from contextlib import contextmanager
+from multiprocessing import JoinableQueue, Manager, Pool
+from os import path
+from queue import Full
+from typing import Any
+
+from coloredlogs import StandardErrorHandler
 from elasticsearch import Elasticsearch, ElasticsearchException
 from elasticsearch_dsl import Document, Search
-from multiprocessing import Pool, JoinableQueue, Manager
-from queue import Full
-from os import path
-
 from elasticsearch_dsl.utils import ObjectBase
 from rich.progress import Progress
-from typing import Any, ContextManager, Dict, List, Optional
+
+from es_translator.es import TranslatedHit
 
 # Module from the same package
 from es_translator.interpreters import Apertium, Argos
 from es_translator.logger import logger
-from es_translator.worker import translation_worker, FatalTranslationException
 from es_translator.tasks import translate_document_task
-from es_translator.es import TranslatedHit
+from es_translator.worker import FatalTranslationException, translation_worker
 
 
 class EsTranslator:
@@ -53,7 +55,7 @@ class EsTranslator:
         interpreter: Instantiated interpreter instance.
     """
 
-    def __init__(self, options: Dict[str, Any]) -> None:
+    def __init__(self, options: dict[str, Any]) -> None:
         """Initialize the Elasticsearch translator.
 
         Args:
@@ -119,7 +121,7 @@ class EsTranslator:
                 translate_document_task.delay(self.options, hit.meta.to_dict())
 
     @property
-    def options(self) -> Dict[str, Any]:
+    def options(self) -> dict[str, Any]:
         """Get configuration options as a dictionary.
 
         Returns:
@@ -167,12 +169,12 @@ class EsTranslator:
         search = search.source(self.search_source)
         search = search.params(scroll=self.scan_scroll, size=self.pool_size)
         return search
-    
+
     @property
-    def search_source(self) -> List[str]:
+    def search_source(self) -> list[str]:
         """Gets the list of fields to use in the search.
 
-        Returns: 
+        Returns:
             List[str]: list of fields to use in the search.
         """
         if self.plan:
@@ -189,16 +191,16 @@ class EsTranslator:
         return JoinableQueue(self.pool_size)
 
     @contextmanager
-    def with_shared_fatal_error(self) -> ContextManager:
+    def with_shared_fatal_error(self) -> Generator[Any, None, None]:
         """Creates a context manager for managing shared fatal errors.
 
         Returns:
-            ContextManager: A context manager.
+            Generator yielding a shared manager value.
         """
         with Manager() as manager:
             yield manager.Value('b', None)
 
-    def find_document(self, params: Dict[str, str]) -> Document:
+    def find_document(self, params: dict[str, str]) -> Document:
         """Find a document by ID and routing.
 
         Args:
@@ -246,14 +248,16 @@ class EsTranslator:
             shared_fatal_error (Manager): A shared manager for fatal errors.
             total (int): The total number of documents.
         """
-        with Pool(self.pool_size, translation_worker, (translation_queue, shared_fatal_error)):
-            with Progress(disable=self.no_progressbar, transient=True) as progress:
-                task = progress.add_task(
-                    f"Translating {total} document{'s'[:total^1]}", total=total)
-                for hit in search.scan():
-                    self.process_document(
-                        translation_queue, hit, progress, task, shared_fatal_error)
-                translation_queue.join()
+        with (
+            Pool(self.pool_size, translation_worker, (translation_queue, shared_fatal_error)),
+            Progress(disable=self.no_progressbar, transient=True) as progress,
+        ):
+            task = progress.add_task(
+                f"Translating {total} document{'s'[:total^1]}", total=total)
+            for hit in search.scan():
+                self.process_document(
+                    translation_queue, hit, progress, task, shared_fatal_error)
+            translation_queue.join()
 
     def process_document(
             self,
@@ -330,14 +334,14 @@ class EsTranslator:
             return 0
 
     @contextmanager
-    def print_done(self, string: str) -> ContextManager:
+    def print_done(self, string: str) -> Generator[None, None, None]:
         """Print progress message and yield, showing done/error status.
 
         Args:
             string: The status message to be printed.
 
         Returns:
-            Context manager for wrapping operations with status output.
+            Generator for wrapping operations with status output.
         """
         logger.info(string)
         if self.stdout_loglevel > 20:

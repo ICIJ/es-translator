@@ -4,14 +4,15 @@ This module provides the Argos interpreter class that interfaces with the
 argostranslate library for neural machine translation between languages.
 """
 import tempfile
-from typing import List, Optional, Any
+from pathlib import Path
+from typing import Any, Optional
+
 from argostranslate import package as argospackage
 from argostranslate import translate as argostranslate
-from pathlib import Path
 from filelock import FileLock, Timeout
 
-from ..abstract import AbstractInterpreter
 from ...logger import logger
+from ..abstract import AbstractInterpreter
 
 
 class ArgosPairNotAvailable(Exception):
@@ -81,7 +82,7 @@ class Argos(AbstractInterpreter):
         return False
 
     @property
-    def local_languages(self) -> List[str]:
+    def local_languages(self) -> list[str]:
         """Get the codes for the installed languages.
 
         Returns:

@@ -1,4 +1,4 @@
-class TranslatedHit():
+class TranslatedHit:
     def __init__(self, hit, source_field='content',
                  target_field='content_translated',
                  force=False):
@@ -33,7 +33,7 @@ class TranslatedHit():
 
     @property
     def body(self):
-        body = dict(doc=dict())
+        body = {'doc': {}}
         body['doc'][self.target_field] = self.translations
         return body
 
@@ -51,11 +51,11 @@ class TranslatedHit():
                 interpreter.name):
             content = interpreter.translate(self.source_value)
             truncated_content = content if max_content_length == -1 else content[:max_content_length]
-            self.hit[self.target_field].append(dict(
-                translator=interpreter.name,
-                source_language=interpreter.source_name.upper(),
-                target_language=interpreter.target_name.upper(),
-                content=truncated_content))
+            self.hit[self.target_field].append({
+                'translator': interpreter.name,
+                'source_language': interpreter.source_name.upper(),
+                'target_language': interpreter.target_name.upper(),
+                'content': truncated_content})
 
     def is_translated(self, source_language, target_language, translator):
         def same_languages(t):

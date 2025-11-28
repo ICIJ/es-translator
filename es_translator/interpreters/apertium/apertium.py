@@ -4,15 +4,18 @@ This module provides the Apertium interpreter class that interfaces with the
 Apertium translation engine to perform language translations, including support
 for intermediary language pairs when direct translation is unavailable.
 """
-from tempfile import NamedTemporaryFile
 from functools import lru_cache
-from typing import Dict, List, Optional
-from sh import apertium, ErrorReturnCode
-# Module from the same package
-from .repository import ApertiumRepository
-from ..abstract import AbstractInterpreter
+from tempfile import NamedTemporaryFile
+from typing import Optional
+
+from sh import ErrorReturnCode, apertium
+
 from ...alpha import to_alpha_3_pair
 from ...logger import logger
+from ..abstract import AbstractInterpreter
+
+# Module from the same package
+from .repository import ApertiumRepository
 
 
 class Apertium(AbstractInterpreter):
@@ -75,7 +78,7 @@ class Apertium(AbstractInterpreter):
         return not self.intermediary and self.pair in self.local_pairs
 
     @property
-    def pairs_pipeline(self) -> List[str]:
+    def pairs_pipeline(self) -> list[str]:
         """Get the translation pipeline (direct or via intermediary).
 
         Returns:
@@ -125,7 +128,7 @@ class Apertium(AbstractInterpreter):
         return self.pair_to_pair_package(self.intermediary_target_pair)
 
     @property
-    def intermediary_pairs(self) -> List[str]:
+    def intermediary_pairs(self) -> list[str]:
         """Get intermediary language pairs for indirect translation.
 
         Automatically finds an intermediary language if not specified
@@ -147,7 +150,7 @@ class Apertium(AbstractInterpreter):
         return [self.intermediary_source_pair, self.intermediary_target_pair]
 
     @property
-    def local_pairs(self) -> List[str]:
+    def local_pairs(self) -> list[str]:
         """Get locally installed language pairs.
 
         Returns:
@@ -157,8 +160,8 @@ class Apertium(AbstractInterpreter):
         return [s.strip() for s in output.split('\n')]
 
     @property
-    @lru_cache()
-    def remote_pairs(self, module: str = 'trunk') -> List[str]:
+    @lru_cache
+    def remote_pairs(self, module: str = 'trunk') -> list[str]:
         """Get remotely available language pairs from repository.
 
         Args:
@@ -219,10 +222,7 @@ class Apertium(AbstractInterpreter):
         Returns:
             Path to the installed package directory.
         """
-        if pair is None:
-            pair = self.pair_alpha_3
-        else:
-            pair = to_alpha_3_pair(pair)
+        pair = self.pair_alpha_3 if pair is None else to_alpha_3_pair(pair)
         # All commands must be run from the pack dir
         return self.repository.install_pair_package(pair)
 
@@ -240,7 +240,7 @@ class Apertium(AbstractInterpreter):
         for pair in self.intermediary_pairs:
             self.download_pair(pair)
 
-    def lang_tree(self, lang: str, pairs: List[List[str]], depth: int = 2) -> Dict:
+    def lang_tree(self, lang: str, pairs: list[list[str]], depth: int = 2) -> dict:
         """Build a tree of language connections from available pairs.
 
         Args:
@@ -251,15 +251,15 @@ class Apertium(AbstractInterpreter):
         Returns:
             Dictionary tree structure with 'lang' and 'children' keys.
         """
-        tree = dict(lang=lang, children=dict())
+        tree = {'lang': lang, 'children': {}}
         for pair in pairs:
             if lang in pair and depth > 0:
-                child_lang = next(l for l in pair if l != lang)
+                child_lang = next(item for item in pair if item != lang)
                 tree["children"][child_lang] = self.lang_tree(
                     child_lang, pairs, depth - 1)
         return tree
 
-    def first_pairs_path(self, leaf: Dict, lang: str) -> List[str]:
+    def first_pairs_path(self, leaf: dict, lang: str) -> list[str]:
         """Find the first path from a tree leaf to a target language.
 
         Args:
@@ -277,7 +277,7 @@ class Apertium(AbstractInterpreter):
                 break
         return path
 
-    def leaf_has_lang(self, leaf: Dict, lang: str) -> bool:
+    def leaf_has_lang(self, leaf: dict, lang: str) -> bool:
         """Check if a tree leaf contains or leads to a target language.
 
         Args:
@@ -329,6 +329,6 @@ class Apertium(AbstractInterpreter):
                 temp_input_file.seek(0)
                 input_translated = apertium(
                     '-ud', self.pack_dir, pair, temp_input_file.name)
-        except ErrorReturnCode as e:
+        except ErrorReturnCode:
             raise Exception('Unable to translate this string.')
         return str(input_translated)

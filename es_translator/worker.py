@@ -1,7 +1,9 @@
 
-from time import sleep
-from elasticsearch import ElasticsearchException
 from queue import Full
+from time import sleep
+
+from elasticsearch import ElasticsearchException
+
 # Module from the same package
 from es_translator.logger import logger
 
@@ -41,16 +43,16 @@ def translation_worker(queue, shared_fatal_error):
 
 def handle_elasticsearch_exception(error, index):
     # Handle Elasticsearch exception
-    logger.error('An error occurred when saving doc %s' % index.meta.id)
+    logger.error(f'An error occurred when saving doc {index.meta.id}')
     logger.error(error)
 
 
 def handle_timeout_reached(pool_timeout):
     # Handle timeout reached
-    logger.warning('Timeout reached (%ss).' % pool_timeout)
+    logger.warning(f'Timeout reached ({pool_timeout}s).')
 
 
 def handle_exception(error, hit):
     # Handle other exceptions
-    logger.warning('Unable to translate doc %s' % hit.meta.id)
+    logger.warning(f'Unable to translate doc {hit.meta.id}')
     logger.warning(error)

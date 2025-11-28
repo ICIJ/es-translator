@@ -54,15 +54,15 @@ class AbstractInterpreter(ABC):
 
     @property
     def pair(self):
-        return '%s-%s' % (self.source, self.target)
+        return f'{self.source}-{self.target}'
 
     @property
     def pair_alpha_3(self):
-        return '%s-%s' % (self.source_alpha_3, self.target_alpha_3)
+        return f'{self.source_alpha_3}-{self.target_alpha_3}'
 
     @property
     def pair_inverse(self):
-        return '%s-%s' % (self.target, self.source)
+        return f'{self.target}-{self.source}'
 
     @property
     def has_pair(self):

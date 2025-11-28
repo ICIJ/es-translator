@@ -3,17 +3,19 @@
 This module provides Click-based CLI commands for translating Elasticsearch documents,
 managing translation workers, and listing available language pairs.
 """
-import re
-import click
 import logging
-from typing import Any, Optional
+import re
 from tempfile import mkdtemp
+from typing import Any, Optional
+
+import click
 
 from es_translator import EsTranslator
+
 # Module from the same package
 from es_translator.interpreters import Apertium, Argos
 from es_translator.interpreters.apertium.pairs import Pairs
-from es_translator.logger import add_syslog_handler, add_stdout_handler
+from es_translator.logger import add_stdout_handler, add_syslog_handler
 from es_translator.tasks import app as celery_app
 
 
@@ -151,7 +153,7 @@ def validate_max_content_length(ctx: click.Context, param: click.Parameter, valu
               help='Don\'t save anything in Elasticsearch',
               is_flag=True,
               default=False)
-@click.option('-f', 
+@click.option('-f',
               '--force',
               help='Override existing translation in Elasticsearch',
               is_flag=True,
@@ -209,7 +211,7 @@ def translate(syslog_address: str, syslog_port: int, syslog_facility: str, **opt
     # or later, we need to initialize the interpreter (Argos, Apertium, ...)
     es_translator = EsTranslator(options)
     es_translator.start()
-        
+
 
 
 @click.command()

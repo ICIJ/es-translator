@@ -1,16 +1,17 @@
 """Apertium repository management module for downloading and installing translation pairs."""
 
-from deb_pkg_tools.control import parse_deb822
+import platform
+import re
 from fileinput import FileInput
 from functools import lru_cache
 from glob import glob
-from os.path import basename, join, isfile, dirname, abspath
-from sh import dpkg_deb, mkdir, pushd, cp, rm
-from typing import Dict, List, Optional
+from os.path import abspath, basename, dirname, isfile, join
+from typing import Optional
 from urllib import request
-from urllib.error import URLError, HTTPError
-import platform
-import re
+from urllib.error import HTTPError, URLError
+
+from deb_pkg_tools.control import parse_deb822
+from sh import cp, dpkg_deb, mkdir, pushd, rm
 
 # Module from the same package
 from es_translator.alpha import to_alpha_2, to_alpha_3, to_alpha_3_pair
@@ -74,7 +75,7 @@ class ApertiumRepository:
         return get_packages_file_url(self.arch)
 
     @property
-    @lru_cache()
+    @lru_cache
     def control_file_content(self) -> str:
         """Fetch and cache the Packages control file content.
 
@@ -94,8 +95,8 @@ class ApertiumRepository:
             raise
 
     @property
-    @lru_cache()
-    def packages(self) -> List[Dict]:
+    @lru_cache
+    def packages(self) -> list[dict]:
         """Parse and cache the list of available packages.
 
         Returns:
@@ -109,8 +110,8 @@ class ApertiumRepository:
         return list(map(parse_deb822, control_strings))
 
     @property
-    @lru_cache()
-    def pair_packages(self) -> List[Dict]:
+    @lru_cache
+    def pair_packages(self) -> list[dict]:
         """Get filtered list of Apertium translation pair packages.
 
         Returns:
@@ -118,7 +119,7 @@ class ApertiumRepository:
         """
         return list(filter(self.is_apertium_pair, self.packages))
 
-    def find_package(self, package: str) -> Optional[Dict]:
+    def find_package(self, package: str) -> Optional[dict]:
         """Find a package by name or provided name.
 
         Args:
@@ -127,7 +128,7 @@ class ApertiumRepository:
         Returns:
             Package metadata dictionary if found, None otherwise.
         """
-        def is_package(c: Dict) -> bool:
+        def is_package(c: dict) -> bool:
             return c.get('Package') == package or c.get('Provides') == package
 
         try:
@@ -136,7 +137,7 @@ class ApertiumRepository:
             logger.warning(f'Unable to find package {package}')
             return None
 
-    def find_pair_package(self, pair: str) -> Optional[Dict]:
+    def find_pair_package(self, pair: str) -> Optional[dict]:
         """Find a translation pair package.
 
         Searches for both forward (source-target) and reverse (target-source) pairs.
@@ -150,7 +151,7 @@ class ApertiumRepository:
         pair = to_alpha_3_pair(pair)
         pair_inversed = '-'.join(pair.split('-')[::-1])
 
-        def is_pair(c: Dict) -> bool:
+        def is_pair(c: dict) -> bool:
             package_name = c.get('Package', '')
             return package_name.endswith(pair) or package_name.endswith(pair_inversed)
 
@@ -159,7 +160,7 @@ class ApertiumRepository:
         except StopIteration:
             return None
 
-    def is_apertium_pair(self, control: Dict) -> bool:
+    def is_apertium_pair(self, control: dict) -> bool:
         """Check if a package is an Apertium translation pair.
 
         Args:
@@ -350,7 +351,7 @@ class ApertiumRepository:
         logger.info(f'Installing pair package {pair}')
         package_file = self.download_pair_package(pair)
         package_dir = self.extract_pair_package(package_file)
-        alias_dir = self.create_pair_package_alias(package_dir)
+        self.create_pair_package_alias(package_dir)
         self.import_modes(clear=False)
         return package_dir
 

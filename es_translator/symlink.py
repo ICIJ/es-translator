@@ -1,4 +1,5 @@
 from os.path import isdir, isfile, islink
+
 from sh import ln, rm
 
 
