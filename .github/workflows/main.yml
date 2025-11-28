@@ -70,5 +70,8 @@ jobs:
           # Fix invalid escape sequence in parse_transitions.py for Python 3.12+
           sed -i 's/\\Tree/\\\\Tree/g' $PARSE_TRANSITIONS_FILE
 
+      - name: Run ruff linter
+        run: make lint
+
       - name: Run tests
         run: make test
