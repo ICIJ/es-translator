@@ -11,8 +11,7 @@ from typing import Any, Optional
 import click
 
 from es_translator import EsTranslator
-
-# Module from the same package
+from es_translator import config
 from es_translator.interpreters import Apertium, Argos
 from es_translator.interpreters.apertium.pairs import Pairs
 from es_translator.logger import add_stdout_handler, add_syslog_handler
@@ -111,12 +110,12 @@ def validate_max_content_length(ctx: click.Context, param: click.Parameter, valu
 
 @click.command()
 @click.option('-u', '--url', help='Elastichsearch URL',
-              default="http://localhost:9200")
-@click.option('-i', '--index', help='Elastichsearch Index', default='local-datashare')
+              default=config.ELASTICSEARCH_URL)
+@click.option('-i', '--index', help='Elastichsearch Index', default=config.ELASTICSEARCH_INDEX)
 @click.option('-r',
               '--interpreter',
               help='Interpreter to use to perform the translation',
-              default='ARGOS',
+              default=config.DEFAULT_INTERPRETER,
               callback=validate_interpreter)
 @click.option('-s',
               '--source-language',
@@ -132,10 +131,10 @@ def validate_max_content_length(ctx: click.Context, param: click.Parameter, valu
               help='An intermediary language to use when no translation is available between the source and the target. If none is provided this will be calculated automatically.')
 @click.option('--source-field',
               help='Document field to translate',
-              default="content")
+              default=config.DEFAULT_SOURCE_FIELD)
 @click.option('--target-field',
               help='Document field where the translations are stored',
-              default="content_translated")
+              default=config.DEFAULT_TARGET_FIELD)
 @click.option('-q', '--query-string',
               help='Search query string to filter result')
 @click.option('-d',
@@ -148,7 +147,7 @@ def validate_max_content_length(ctx: click.Context, param: click.Parameter, valu
               default=mkdtemp())
 @click.option('--scan-scroll',
               help='Scroll duration (set to higher value if you\'re processing a lot of documents)',
-              default="5m")
+              default=config.DEFAULT_SCAN_SCROLL)
 @click.option('--dry-run',
               help='Don\'t save anything in Elasticsearch',
               is_flag=True,
@@ -160,16 +159,16 @@ def validate_max_content_length(ctx: click.Context, param: click.Parameter, valu
               default=False)
 @click.option('--pool-size',
               help='Number of parallel processes to start',
-              default=1)
+              default=config.DEFAULT_POOL_SIZE)
 @click.option('--pool-timeout',
               help='Timeout to add a translation',
-              default=60 * 30)
+              default=config.DEFAULT_POOL_TIMEOUT)
 @click.option('--throttle',
               help='Throttle between each translation (in ms)',
               default=0)
-@click.option('--syslog-address', help='Syslog address', default='localhost')
-@click.option('--syslog-port', help='Syslog port', default=514)
-@click.option('--syslog-facility', help='Syslog facility', default='local7')
+@click.option('--syslog-address', help='Syslog address', default=config.DEFAULT_SYSLOG_ADDRESS)
+@click.option('--syslog-port', help='Syslog port', default=config.DEFAULT_SYSLOG_PORT)
+@click.option('--syslog-facility', help='Syslog facility', default=config.DEFAULT_SYSLOG_FACILITY)
 @click.option('--stdout-loglevel',
               help='Change the default log level for stdout error handler',
               default='ERROR',
@@ -184,11 +183,11 @@ def validate_max_content_length(ctx: click.Context, param: click.Parameter, valu
               default=False)
 @click.option('--broker-url',
               help='Celery broker URL (only needed when planning translation)',
-              default='redis://localhost:6379')
+              default=config.BROKER_URL)
 @click.option('--max-content-length',
               help="Max translated content length (<[0-9]+[KMG]?>) to avoid highlight errors"
                    "(see http://github.com/ICIJ/datashare/issues/1184)",
-              default="19G",
+              default=config.DEFAULT_MAX_CONTENT_LENGTH,
               callback=validate_max_content_length)
 def translate(syslog_address: str, syslog_port: int, syslog_facility: str, **options: Any) -> None:
     """Translate documents in an Elasticsearch index.
@@ -215,8 +214,8 @@ def translate(syslog_address: str, syslog_port: int, syslog_facility: str, **opt
 
 
 @click.command()
-@click.option('--broker-url', default='redis://redis', help='Celery broker URL')
-@click.option('--concurrency', default=1, help='Number of concurrent workers')
+@click.option('--broker-url', default=config.BROKER_URL, help='Celery broker URL')
+@click.option('--concurrency', default=config.DEFAULT_POOL_SIZE, help='Number of concurrent workers')
 @click.option('--stdout-loglevel',
               help='Change the default log level for stdout error handler',
               default='ERROR',
@@ -249,9 +248,9 @@ def tasks(broker_url: str, concurrency: int, stdout_loglevel: int) -> None:
               default=mkdtemp())
 @click.option('--local', help='List pairs available locally',
               is_flag=True, default=False)
-@click.option('--syslog-address', help='Syslog address', default='localhost')
-@click.option('--syslog-port', help='Syslog port', default=514)
-@click.option('--syslog-facility', help='Syslog facility', default='local7')
+@click.option('--syslog-address', help='Syslog address', default=config.DEFAULT_SYSLOG_ADDRESS)
+@click.option('--syslog-port', help='Syslog port', default=config.DEFAULT_SYSLOG_PORT)
+@click.option('--syslog-facility', help='Syslog facility', default=config.DEFAULT_SYSLOG_FACILITY)
 @click.option('--stdout-loglevel',
               help='Change the default log level for stdout error handler',
               default='ERROR',
