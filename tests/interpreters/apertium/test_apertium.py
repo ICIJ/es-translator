@@ -1,8 +1,19 @@
 import os
+import unittest
 
 from unittest import TestCase
 from tempfile import mkdtemp
-from es_translator.interpreters.apertium import Apertium
+from es_translator.interpreters.apertium import Apertium, ApertiumNotInstalledError
+
+
+def is_apertium_installed():
+    """Check if Apertium is installed on the system."""
+    try:
+        from es_translator.interpreters.apertium.apertium import _get_apertium
+        _get_apertium()
+        return True
+    except ApertiumNotInstalledError:
+        return False
 
 
 here = lambda: os.path.dirname(os.path.abspath(__file__))
@@ -10,6 +21,8 @@ root = lambda x: os.path.abspath(os.path.join(here(), '../../../', x))
 # Use the .cache dir if it exists, or use a temporary dir
 pack_dir = root('.cache/APERTIUM') if os.path.isdir(root('.cache')) else mkdtemp()
 
+
+@unittest.skipUnless(is_apertium_installed(), "Apertium not installed")
 class TestApertium(TestCase):
     @classmethod
     def setUpClass(self):

@@ -1,1 +1,1 @@
-from .apertium import Apertium
+from .apertium import Apertium, ApertiumNotInstalledError
