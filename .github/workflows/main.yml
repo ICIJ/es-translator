@@ -67,8 +67,16 @@ jobs:
           export BEAM_FILE=$VENV_PATH/lib/python$PYTHON_VERSION/site-packages/stanza/models/common/beam.py
           export PARSE_TRANSITIONS_FILE=$VENV_PATH/lib/python$PYTHON_VERSION/site-packages/stanza/models/constituency/parse_transitions.py
           sed -i '/"""/,/"""/ d' $BEAM_FILE
-          # Fix invalid escape sequence in parse_transitions.py for Python 3.12+
-          sed -i 's/\\Tree/\\\\Tree/g' $PARSE_TRANSITIONS_FILE
+          # Fix invalid escape sequence in parse_transitions.py by using raw string
+          python -c "
+          import re
+          with open('$PARSE_TRANSITIONS_FILE', 'r') as f:
+              content = f.read()
+          # Replace any variant of the problematic string with raw string version
+          content = re.sub(r'return \"\\\\+Tree \[', 'return r\"\\\\Tree [', content)
+          with open('$PARSE_TRANSITIONS_FILE', 'w') as f:
+              f.write(content)
+          "
 
       - name: Run ruff linter
         run: make lint
