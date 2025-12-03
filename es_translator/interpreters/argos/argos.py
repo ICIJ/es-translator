@@ -55,10 +55,10 @@ class Argos(AbstractInterpreter):
         super().__init__(source, target)
         # Raise an exception if an intermediary language is provided
         if intermediary is not None:
-            logger.warn(
+            logger.warning(
                 'Argos interpreter does not support intermediary language')
         if pack_dir is not None:
-            logger.warn(
+            logger.warning(
                 'Argos interpreter does not support custom pack directory')
         # Raise an exception if the language pair is unknown
         if not self.is_pair_available and self.has_pair:
