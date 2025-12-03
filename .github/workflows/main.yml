@@ -69,11 +69,12 @@ jobs:
           sed -i '/"""/,/"""/ d' $BEAM_FILE
           # Fix invalid escape sequence in parse_transitions.py by using raw string
           python -c "
-          import re
           with open('$PARSE_TRANSITIONS_FILE', 'r') as f:
               content = f.read()
-          # Replace any variant of the problematic string with raw string version
-          content = re.sub(r'return \"\\\\+Tree \[', 'return r\"\\\\Tree [', content)
+          # Replace the problematic line with a fixed version using raw string
+          content = content.replace('return \"\\\\Tree [.%s ? ]\" % self.label', 'return r\"\\Tree [.%s ? ]\" % self.label')
+          content = content.replace('return \"\\\\\\\\Tree [.%s ? ]\" % self.label', 'return r\"\\Tree [.%s ? ]\" % self.label')
+          content = content.replace('return \"\\\\\\\\\\\\Tree [.%s ? ]\" % self.label', 'return r\"\\Tree [.%s ? ]\" % self.label')
           with open('$PARSE_TRANSITIONS_FILE', 'w') as f:
               f.write(content)
           "
