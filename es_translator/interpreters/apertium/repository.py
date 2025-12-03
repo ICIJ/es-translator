@@ -13,12 +13,27 @@ from urllib.error import HTTPError, URLError
 from deb_pkg_tools.control import parse_deb822
 from sh import cp, dpkg_deb, mkdir, pushd, rm
 
-# Module from the same package
 from es_translator.alpha import to_alpha_2, to_alpha_3, to_alpha_3_pair
 from es_translator.logger import logger
 from es_translator.symlink import create_symlink
 
 REPOSITORY_URL = "https://apertium.projectjj.com/apt/nightly"
+
+
+class PackageNotFoundError(Exception):
+    """Exception raised when a package is not found in the repository."""
+
+    def __init__(self, package_name: str) -> None:
+        super().__init__(f"Package '{package_name}' not found in repository")
+        self.package_name = package_name
+
+
+class PairPackageNotFoundError(Exception):
+    """Exception raised when a language pair package is not available."""
+
+    def __init__(self, pair: str) -> None:
+        super().__init__(f"No pair package available for '{pair}'")
+        self.pair = pair
 
 
 def get_packages_file_url(arch: Optional[str] = None) -> str:
@@ -216,7 +231,7 @@ class ApertiumRepository:
             logger.info(f'Found latest version: {latest_file}')
             return package_url
         else:
-            raise Exception(f'Could not find package {package_name} in pool directory')
+            raise PackageNotFoundError(package_name)
 
     def download_package(self, name: str, force: bool = False) -> str:
         """Download a package from the repository.
@@ -229,11 +244,11 @@ class ApertiumRepository:
             Path to the downloaded .deb file.
 
         Raises:
-            Exception: If package cannot be found or downloaded.
+            PackageNotFoundError: If package cannot be found.
         """
         package = self.find_package(name)
         if package is None:
-            raise Exception(f'Package {name} not found in repository')
+            raise PackageNotFoundError(name)
 
         package_dir = join(self.cache_dir, name)
         package_file = join(package_dir, 'package.deb')
@@ -247,7 +262,7 @@ class ApertiumRepository:
             package_url = f"{REPOSITORY_URL}/{package['Filename']}"
             try:
                 request.urlretrieve(package_url, package_file)
-            except Exception as e:
+            except (URLError, HTTPError, OSError) as e:
                 # If that fails, try to find the latest version in the pool directory
                 logger.warning(f'Failed to download from Packages file URL: {e}')
                 package_url = self.find_latest_package_in_pool(name, package['Filename'])
@@ -265,13 +280,13 @@ class ApertiumRepository:
             Path to the downloaded .deb file.
 
         Raises:
-            Exception: If no pair package is available for the given languages.
+            PairPackageNotFoundError: If no pair package is available for the given languages.
         """
         pair_package = self.find_pair_package(pair)
         if pair_package is not None:
             return self.download_package(pair_package.get('Package'))
         else:
-            raise Exception(f'No pair package available for "{pair}"')
+            raise PairPackageNotFoundError(pair)
 
     def replace_in_file(self, file: str, target: str, replacement: str) -> None:
         """Replace all occurrences of target string in a file.
