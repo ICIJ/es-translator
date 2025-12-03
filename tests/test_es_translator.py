@@ -6,7 +6,18 @@ from elasticsearch_dsl import Search
 from elasticsearch_dsl.utils import ObjectBase
 
 from es_translator.interpreters import Apertium
+from es_translator.interpreters.apertium.apertium import ApertiumNotInstalledError
 from es_translator.es_translator import EsTranslator
+
+
+def is_apertium_installed():
+    """Check if Apertium is installed on the system."""
+    try:
+        from es_translator.interpreters.apertium.apertium import _get_apertium
+        _get_apertium()
+        return True
+    except ApertiumNotInstalledError:
+        return False
 
 
 class EsTranslatorTestCase(unittest.TestCase):
@@ -42,6 +53,7 @@ class EsTranslatorTestCase(unittest.TestCase):
         self.assertEqual(search._params['scroll'], '5m')
         self.assertEqual(search._params['size'], 4)
 
+    @unittest.skipUnless(is_apertium_installed(), "Apertium not installed")
     def test_instantiate_interpreter(self):
         self.assertFalse(hasattr(self.translator, 'interpreter'))
         interpreter = self.translator.instantiate_interpreter()

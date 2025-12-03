@@ -8,7 +8,7 @@ from functools import lru_cache
 from tempfile import NamedTemporaryFile
 from typing import Optional
 
-from sh import ErrorReturnCode, apertium
+from sh import CommandNotFound, ErrorReturnCode
 
 from ...alpha import to_alpha_3_pair
 from ...logger import logger
@@ -16,6 +16,26 @@ from ..abstract import AbstractInterpreter
 
 # Module from the same package
 from .repository import ApertiumRepository
+
+
+class ApertiumNotInstalledError(Exception):
+    """Raised when the Apertium command is not available on the system."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Apertium is not installed. Please install it first:\n"
+            "  wget https://apertium.projectjj.com/apt/install-nightly.sh -O - | sudo bash\n"
+            "  sudo apt install apertium-all-dev"
+        )
+
+
+def _get_apertium():
+    """Lazily get the apertium command, raising a helpful error if not installed."""
+    try:
+        from sh import apertium
+        return apertium
+    except (CommandNotFound, ImportError):
+        raise ApertiumNotInstalledError()
 
 
 class Apertium(AbstractInterpreter):
@@ -51,7 +71,8 @@ class Apertium(AbstractInterpreter):
         # A class to download necessary pair package
         self.repository = ApertiumRepository(self.pack_dir)
         # Raise an exception if the language pair is unknown
-        if not self.is_pair_available and self.has_pair:
+        # Note: has_pair must be checked first to avoid accessing local_pairs when no pair is set
+        if self.has_pair and not self.is_pair_available:
             try:
                 self.download_necessary_pairs()
             except StopIteration:
@@ -156,6 +177,7 @@ class Apertium(AbstractInterpreter):
         Returns:
             List of locally available language pair codes.
         """
+        apertium = _get_apertium()
         output = apertium('-d', self.pack_dir, '-l').strip()
         return [s.strip() for s in output.split('\n')]
 
@@ -322,6 +344,7 @@ class Apertium(AbstractInterpreter):
         Raises:
             Exception: If translation fails.
         """
+        apertium = _get_apertium()
         try:
             # Works with a temporary file as buffer (opened in text mode)
             with NamedTemporaryFile(mode='w+t') as temp_input_file:
