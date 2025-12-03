@@ -1,6 +1,14 @@
 from pycountry import languages
 
 
+class InvalidLanguageCode(ValueError):
+    """Exception raised when an invalid language code is provided."""
+
+    def __init__(self, code: str) -> None:
+        super().__init__(f"Invalid language code: '{code}'")
+        self.code = code
+
+
 def to_alpha_2(code: str) -> str:
     """Convert a language code to ISO 639-1 (2-letter) format.
 
@@ -9,9 +17,15 @@ def to_alpha_2(code: str) -> str:
 
     Returns:
         The 2-letter language code.
+
+    Raises:
+        InvalidLanguageCode: If the language code is not found.
     """
     if len(code) == 3:
-        return languages.get(alpha_3=code).alpha_2
+        lang = languages.get(alpha_3=code)
+        if lang is None:
+            raise InvalidLanguageCode(code)
+        return lang.alpha_2
     return code
 
 
@@ -23,9 +37,15 @@ def to_alpha_3(code: str) -> str:
 
     Returns:
         The 3-letter language code.
+
+    Raises:
+        InvalidLanguageCode: If the language code is not found.
     """
     if len(code) == 2:
-        return languages.get(alpha_2=code).alpha_3
+        lang = languages.get(alpha_2=code)
+        if lang is None:
+            raise InvalidLanguageCode(code)
+        return lang.alpha_3
     return code
 
 
@@ -37,8 +57,14 @@ def to_name(alpha_2: str) -> str:
 
     Returns:
         The full language name.
+
+    Raises:
+        InvalidLanguageCode: If the language code is not found.
     """
-    return languages.get(alpha_2=alpha_2).name
+    lang = languages.get(alpha_2=alpha_2)
+    if lang is None:
+        raise InvalidLanguageCode(alpha_2)
+    return lang.name
 
 
 def to_alpha_3_pair(pair: str) -> str:
