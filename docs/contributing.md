@@ -48,6 +48,7 @@ When contributing code changes, please adhere to the following guidelines:
 
 * Fork the repository and create a new branch for your changes.
 * Ensure your code follows the existing code style and conventions.
+* Run `make lint` to check for linting issues before committing.
 * Write clear and concise commit messages. We recommend using [conventional commits](https://www.conventionalcommits.org).
 * Include tests to cover your changes and ensure they pass.
 * Update documentation as necessary.
