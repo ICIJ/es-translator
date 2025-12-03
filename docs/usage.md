@@ -1,3 +1,37 @@
+## Choosing an Interpreter
+
+EsTranslator supports two translation backends (interpreters):
+
+| Feature | Argos (default) | Apertium |
+|---------|-----------------|----------|
+| **Type** | Neural Machine Translation | Rule-based Machine Translation |
+| **Quality** | Generally higher quality | Good for related languages |
+| **Speed** | Slower (uses ML models) | Faster |
+| **Offline** | Yes (downloads models) | Yes (uses system packages) |
+| **Languages** | ~30 languages | 40+ language pairs |
+| **Intermediary** | Not supported | Supported |
+| **Installation** | Automatic via pip | Requires system packages |
+
+### When to use Argos
+
+- You need high-quality translations
+- You're translating between common language pairs
+- You don't need intermediary language support
+
+### When to use Apertium
+
+- You're translating between related languages (e.g., Spanish-Portuguese)
+- You need intermediary language support for indirect translations
+- You need faster translation speed
+- You're working with less common language pairs
+
+To list available Apertium language pairs:
+
+```bash
+es-translator-pairs --local   # Show locally installed pairs
+es-translator-pairs           # Show all available pairs (remote)
+```
+
 ## Commands
 
 ### `es-translator`
@@ -177,3 +211,100 @@ sudo docker run \
     --concurrency 1
 ```
 
+## Configuration Options
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `REDIS_URL` | Redis URL for Celery broker | `redis://localhost:6379/0` |
+
+### Performance Tuning
+
+- **`--pool-size`**: Increase for faster translation on multi-core systems. Each worker process handles one document at a time.
+- **`--scan-scroll`**: Increase (e.g., `10m`, `30m`) when processing large datasets to prevent Elasticsearch scroll timeout.
+- **`--max-content-length`**: Limit translated content length to avoid Elasticsearch highlighting issues. Accepts values like `1M`, `10M`, `1G`.
+- **`--throttle`**: Add delay between translations (in ms) to reduce load on Elasticsearch.
+
+## Troubleshooting
+
+### Common Issues
+
+#### "The pair is not available"
+
+This error occurs when the requested language pair is not supported by the interpreter.
+
+**For Argos:**
+
+- Check available pairs: Argos automatically downloads required language models
+- Ensure you have internet connectivity for the first run
+
+**For Apertium:**
+
+- List available pairs: `es-translator-pairs`
+- Try using an intermediary language: `--intermediary-language es`
+
+#### Elasticsearch scroll context timeout
+
+When processing large datasets, you may see errors about lost scroll context.
+
+**Solutions:**
+
+1. Increase scroll duration: `--scan-scroll 30m`
+2. Use planned translation mode with `--plan` to process documents individually
+3. Reduce `--pool-size` to process fewer documents simultaneously
+
+#### Memory issues with large documents
+
+Large documents can cause memory issues, especially with Argos.
+
+**Solutions:**
+
+1. Limit content length: `--max-content-length 10M`
+2. Reduce `--pool-size` to limit concurrent translations
+3. Use Apertium interpreter which is more memory-efficient
+
+#### Translation taking too long
+
+**Solutions:**
+
+1. Increase `--pool-size` for parallel processing
+2. Use Apertium interpreter (faster but may have lower quality)
+3. Filter documents with `--query-string` to process only what's needed
+4. Use `--dry-run` first to test without saving
+
+#### Docker container cannot connect to Elasticsearch
+
+When running es-translator in Docker, it may not be able to reach Elasticsearch on `localhost`.
+
+**Solutions:**
+
+1. Use host network mode: `docker run --network host ...`
+2. Use the host's IP address instead of `localhost`
+3. Use Docker's special DNS name: `host.docker.internal` (on Docker Desktop)
+
+### Debug Mode
+
+To enable detailed logging for troubleshooting:
+
+```bash
+es-translator \
+  --stdout-loglevel DEBUG \
+  --url "http://localhost:9200" \
+  --index my-index \
+  --source-language fr \
+  --target-language en
+```
+
+### Dry Run Mode
+
+Test your configuration without modifying Elasticsearch:
+
+```bash
+es-translator \
+  --dry-run \
+  --url "http://localhost:9200" \
+  --index my-index \
+  --source-language fr \
+  --target-language en
+```

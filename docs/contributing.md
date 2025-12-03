@@ -42,6 +42,57 @@ make install
 make test
 ```
 
+## Development Commands
+
+The project uses a Makefile for common development tasks. Here's a reference of available commands:
+
+### Code Quality
+
+| Command | Description |
+|---------|-------------|
+| `make lint` | Run ruff linter to check for code issues |
+| `make lint-fix` | Automatically fix linting issues where possible |
+
+### Testing
+
+| Command | Description |
+|---------|-------------|
+| `make test` | Run the test suite with pytest |
+
+### Documentation
+
+| Command | Description |
+|---------|-------------|
+| `make serve-doc` | Start a local documentation server for preview |
+| `make publish-doc` | Deploy documentation to GitHub Pages |
+
+### Building & Cleaning
+
+| Command | Description |
+|---------|-------------|
+| `make install` | Install project dependencies via Poetry |
+| `make clean` | Remove build artifacts, cache files, and compiled Python files |
+
+### Development Workflow
+
+A typical development workflow looks like:
+
+```bash
+# 1. Make your changes to the code
+
+# 2. Run linting to check for issues
+make lint
+
+# 3. Fix any auto-fixable issues
+make lint-fix
+
+# 4. Run tests to ensure nothing is broken
+make test
+
+# 5. Preview documentation changes (if applicable)
+make serve-doc
+```
+
 ## Code Contribution Guidelines
 
 When contributing code changes, please adhere to the following guidelines:
