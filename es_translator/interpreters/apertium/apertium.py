@@ -183,19 +183,18 @@ class Apertium(AbstractInterpreter):
 
     @property
     @lru_cache
-    def remote_pairs(self, module: str = 'trunk') -> list[str]:
+    def remote_pairs(self) -> list[str]:
         """Get remotely available language pairs from repository.
-
-        Args:
-            module: Repository module to query (default: 'trunk').
 
         Returns:
             List of available language pair codes from the repository.
         """
         packages = self.repository.pair_packages
         pairs = []
-        def package_name_to_pair(n: str) -> str:
-            return '-'.join(n.split('-')[-2:])
+
+        def package_name_to_pair(name: str) -> str:
+            return '-'.join(name.split('-')[-2:])
+
         # Extract package within these two properties
         for attr in ['Package', 'Provides']:
             for package in packages:

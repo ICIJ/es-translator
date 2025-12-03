@@ -113,7 +113,8 @@ class EsTranslator:
         """Queue translation tasks for later execution via Celery."""
         self.instantiate_interpreter()
         total = self.search().count()
-        desc = f"Planning translation for {total} document{'s'[:total^1]}"
+        plural = 's' if total != 1 else ''
+        desc = f"Planning translation for {total} document{plural}"
         with self.print_done(desc):
             search = self.configure_search()
             for hit in search.scan():
@@ -252,8 +253,9 @@ class EsTranslator:
             Pool(self.pool_size, translation_worker, (translation_queue, shared_fatal_error)),
             Progress(disable=self.no_progressbar, transient=True) as progress,
         ):
+            plural = 's' if total != 1 else ''
             task = progress.add_task(
-                f"Translating {total} document{'s'[:total^1]}", total=total)
+                f"Translating {total} document{plural}", total=total)
             for hit in search.scan():
                 self.process_document(
                     translation_queue, hit, progress, task, shared_fatal_error)
