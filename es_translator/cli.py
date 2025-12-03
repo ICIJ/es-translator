@@ -10,8 +10,7 @@ from typing import Any, Optional
 
 import click
 
-from es_translator import EsTranslator
-from es_translator import config
+from es_translator import EsTranslator, config
 from es_translator.interpreters import Apertium, Argos
 from es_translator.interpreters.apertium.pairs import Pairs
 from es_translator.logger import add_stdout_handler, add_syslog_handler
