@@ -1,28 +1,39 @@
+"""Worker module for parallel document translation.
 
+This module provides worker functions for translating Elasticsearch documents
+in parallel using a queue-based architecture.
+"""
+from multiprocessing import JoinableQueue
+from multiprocessing.managers import ValueProxy
 from queue import Full
 from time import sleep
+from typing import Any
 
 from elasticsearch import ElasticsearchException
+from elasticsearch_dsl.utils import ObjectBase
 
-# Module from the same package
 from es_translator.logger import logger
 
 
 class FatalTranslationException(Exception):
-    pass
+    """Exception raised when a fatal error occurs during translation.
 
-
-def translation_worker(queue, shared_fatal_error):
+    This exception is used to signal that the translation process should
+    stop due to an unrecoverable error.
     """
-    Worker function that translates documents from the queue in parallel.
+
+
+def translation_worker(
+        queue: JoinableQueue,
+        shared_fatal_error: ValueProxy[Any]) -> None:
+    """Worker function that translates documents from the queue in parallel.
+
+    Continuously retrieves documents from the queue and translates them
+    until a fatal error occurs or the queue is empty.
 
     Args:
         queue: JoinableQueue for retrieving documents to be translated.
-        shared_fatal_error: Shared variable to track fatal errors.
-
-    Notes:
-        This function continuously retrieves documents from the queue and translates them until a fatal error occurs
-        or the queue is empty. It handles different types of exceptions and updates the shared_fatal_error if needed.
+        shared_fatal_error: Shared variable to track fatal errors across workers.
     """
     while not shared_fatal_error.value:
         try:
@@ -41,18 +52,32 @@ def translation_worker(queue, shared_fatal_error):
     queue.close()
 
 
-def handle_elasticsearch_exception(error, index):
-    # Handle Elasticsearch exception
-    logger.error(f'An error occurred when saving doc {index.meta.id}')
+def handle_elasticsearch_exception(error: ElasticsearchException, hit: ObjectBase) -> None:
+    """Handle Elasticsearch exceptions during document save.
+
+    Args:
+        error: The Elasticsearch exception that occurred.
+        hit: The document hit that failed to save.
+    """
+    logger.error(f'An error occurred when saving doc {hit.meta.id}')
     logger.error(error)
 
 
-def handle_timeout_reached(pool_timeout):
-    # Handle timeout reached
+def handle_timeout_reached(pool_timeout: int) -> None:
+    """Handle queue timeout events.
+
+    Args:
+        pool_timeout: The timeout value in seconds.
+    """
     logger.warning(f'Timeout reached ({pool_timeout}s).')
 
 
-def handle_exception(error, hit):
-    # Handle other exceptions
+def handle_exception(error: Exception, hit: ObjectBase) -> None:
+    """Handle general exceptions during translation.
+
+    Args:
+        error: The exception that occurred.
+        hit: The document hit that failed to translate.
+    """
     logger.warning(f'Unable to translate doc {hit.meta.id}')
     logger.warning(error)
