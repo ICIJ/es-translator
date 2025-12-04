@@ -114,10 +114,14 @@ class EsTranslator:
         desc = f'Translating {total} document(s)'
         with self.print_done(desc):
             search = self.configure_search()
-            translation_queue = self.create_translation_queue()
-            with self.with_shared_fatal_error() as shared_fatal_error:
-                self.translate_documents_in_pool(
-                    search, translation_queue, shared_fatal_error, total)
+            if self.pool_size == 1:
+                # Direct translation without multiprocessing (better for GPU)
+                self.translate_documents_direct(search, total)
+            else:
+                translation_queue = self.create_translation_queue()
+                with self.with_shared_fatal_error() as shared_fatal_error:
+                    self.translate_documents_in_pool(
+                        search, translation_queue, shared_fatal_error, total)
 
     def start_later(self) -> None:
         """Queue translation tasks for later execution via Celery."""
@@ -246,13 +250,41 @@ class EsTranslator:
             translated_hit.save(self.create_client())
             logger.info(f'Saved translation for doc {hit.meta.id}')
 
+    def translate_documents_direct(self, search: Search, total: int) -> None:
+        """Translate documents directly without multiprocessing.
+
+        Used when pool_size=1 for simpler execution and better GPU compatibility.
+
+        Args:
+            search: A search object.
+            total: The total number of documents.
+        """
+        from time import sleep
+        with Progress(disable=self.no_progressbar, transient=True) as progress:
+            plural = 's' if total != 1 else ''
+            task = progress.add_task(
+                f"Translating {total} document{plural}", total=total)
+            for hit in search.scan():
+                try:
+                    self.translate_document(hit)
+                    sleep(self.throttle / 1000)
+                except ElasticsearchException as error:
+                    logger.error(f'An error occurred when saving doc {hit.meta.id}')
+                    logger.error(error)
+                    raise FatalTranslationException(error)
+                except Exception as error:
+                    logger.warning(f'Unable to translate doc {hit.meta.id}')
+                    logger.warning(error)
+                finally:
+                    progress.advance(task)
+
     def translate_documents_in_pool(
             self,
             search: Search,
             translation_queue: JoinableQueue,
             shared_fatal_error: Manager,
             total: int) -> None:
-        """Translates documents.
+        """Translates documents using multiprocessing pool.
 
         Args:
             search (Search): A search object.
