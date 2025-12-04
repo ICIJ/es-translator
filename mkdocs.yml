@@ -36,7 +36,7 @@ theme:
 extra_css:
   - stylesheets/extra.css
 nav:
-  - Home: index.md
+  - Getting Started: index.md
   - Usage: usage.md
   - Configuration: configuration.md
   - Datashare: datashare.md
