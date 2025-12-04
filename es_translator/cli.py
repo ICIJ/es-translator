@@ -188,6 +188,10 @@ def validate_max_content_length(ctx: click.Context, param: click.Parameter, valu
                    "(see http://github.com/ICIJ/datashare/issues/1184)",
               default=config.DEFAULT_MAX_CONTENT_LENGTH,
               callback=validate_max_content_length)
+@click.option('--device',
+              help='Device for Argos translation (cpu, cuda, or auto)',
+              type=click.Choice(['cpu', 'cuda', 'auto'], case_sensitive=False),
+              default=config.DEFAULT_DEVICE)
 def translate(syslog_address: str, syslog_port: int, syslog_facility: str, **options: Any) -> None:
     """Translate documents in an Elasticsearch index.
 

@@ -80,6 +80,7 @@ class EsTranslator:
         self.interpreter_name = options['interpreter']
         self.max_content_length = options.get('max_content_length', -1)
         self.plan = options.get('plan', False)
+        self.device = options.get('device', 'auto')
 
     @property
     def no_progressbar(self) -> bool:
@@ -146,7 +147,8 @@ class EsTranslator:
             'throttle': self.throttle,
             'progressbar': self.progressbar,
             'interpreter': self.interpreter_name,
-            'max_content_length': self.max_content_length
+            'max_content_length': self.max_content_length,
+            'device': self.device
         }
 
     def instantiate_interpreter(self) -> Any:
@@ -305,6 +307,14 @@ class EsTranslator:
         interpreters = (Apertium, Argos,)
         Interpreter = next(
             i for i in interpreters if i.name.lower() == self.interpreter_name.lower())
+        # Pass device option only to Argos (Apertium doesn't support GPU)
+        if Interpreter == Argos:
+            return Interpreter(
+                self.source_language,
+                self.target_language,
+                self.intermediary_language,
+                pack_dir,
+                self.device)
         return Interpreter(
             self.source_language,
             self.target_language,
