@@ -19,6 +19,10 @@ DEFAULT_SOURCE_FIELD = os.environ.get('ES_TRANSLATOR_SOURCE_FIELD', 'content')
 DEFAULT_TARGET_FIELD = os.environ.get('ES_TRANSLATOR_TARGET_FIELD', 'content_translated')
 DEFAULT_MAX_CONTENT_LENGTH = os.environ.get('ES_TRANSLATOR_MAX_CONTENT_LENGTH', '19G')
 
+# Device configuration (for Argos neural translation)
+# Options: 'cpu', 'cuda', 'auto'
+DEFAULT_DEVICE = os.environ.get('ES_TRANSLATOR_DEVICE', 'auto')
+
 # Worker configuration
 DEFAULT_POOL_SIZE = int(os.environ.get('ES_TRANSLATOR_POOL_SIZE', '1'))
 DEFAULT_POOL_TIMEOUT = int(os.environ.get('ES_TRANSLATOR_POOL_TIMEOUT', str(60 * 30)))
