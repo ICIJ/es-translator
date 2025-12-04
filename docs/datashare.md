@@ -1,3 +1,7 @@
+---
+icon: material/database
+---
+
 # Using with Datashare
 
 [Datashare](https://datashare.icij.org/) is ICIJ's open-source document analysis platform. es-translator was specifically designed to work with Datashare's Elasticsearch indices.

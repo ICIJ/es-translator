@@ -1,3 +1,7 @@
+---
+icon: material/cog
+---
+
 # Configuration
 
 es-translator can be configured via command-line options or environment variables.

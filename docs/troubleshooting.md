@@ -1,3 +1,7 @@
+---
+icon: material/wrench
+---
+
 # Troubleshooting
 
 Common issues and their solutions.

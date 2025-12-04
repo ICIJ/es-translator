@@ -1,3 +1,7 @@
+---
+icon: material/sitemap
+---
+
 # Architecture
 
 This page explains es-translator's architecture and how its components work together.

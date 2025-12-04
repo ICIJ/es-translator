@@ -1,3 +1,7 @@
+---
+icon: material/book-open-variant
+---
+
 # Usage
 
 This guide covers how to use es-translator to translate documents in Elasticsearch.

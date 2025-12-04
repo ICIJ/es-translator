@@ -1,3 +1,7 @@
+---
+icon: material/github
+---
+
 # Contributing to EsTranslator
 
 Thank you for your interest in contributing to the EsTranslator project! We welcome contributions from the community to help improve and grow the library. This document provides guidelines and information on how you can contribute effectively.
