@@ -1,8 +1,8 @@
 import os
 import unittest
-
-from unittest import TestCase
 from tempfile import mkdtemp
+from unittest import TestCase
+
 from es_translator.interpreters.apertium import Apertium, ApertiumNotInstalledError
 
 
@@ -16,8 +16,10 @@ def is_apertium_installed():
         return False
 
 
-here = lambda: os.path.dirname(os.path.abspath(__file__))
-root = lambda x: os.path.abspath(os.path.join(here(), '../../../', x))
+def here():
+    return os.path.dirname(os.path.abspath(__file__))
+def root(x):
+    return os.path.abspath(os.path.join(here(), '../../../', x))
 # Use the .cache dir if it exists, or use a temporary dir
 pack_dir = root('.cache/APERTIUM') if os.path.isdir(root('.cache')) else mkdtemp()
 
@@ -32,11 +34,11 @@ class TestApertium(TestCase):
         self.por2fra = Apertium(source = 'por', target = 'fra', intermediary = None, pack_dir = pack_dir)
 
     def test_pair_directory_is_created(self):
-        self.assertIn('apertium-%s' % self.eng2spa.pair_package, os.listdir(pack_dir))
-        self.assertIn('apertium-%s' % self.spa2eng.pair_package, os.listdir(pack_dir))
+        self.assertIn(f'apertium-{self.eng2spa.pair_package}', os.listdir(pack_dir))
+        self.assertIn(f'apertium-{self.spa2eng.pair_package}', os.listdir(pack_dir))
 
     def test_intermediary_pair_directory_is_created(self):
-        self.assertIn('apertium-%s' % self.por2eng.intermediary_source_pair_package, os.listdir(pack_dir))
+        self.assertIn(f'apertium-{self.por2eng.intermediary_source_pair_package}', os.listdir(pack_dir))
 
     def test_pair_packages_list(self):
         self.assertTrue(all(len(p.split('-')) == 2 for p in self.eng2spa.remote_pairs))

@@ -101,7 +101,8 @@ ignore = [
 # Ignore unused imports in __init__.py files
 "__init__.py" = ["F401"]
 # Ignore import violations in test files
-"tests/**/*.py" = ["F401", "F811"]
+# B017: allow assertRaises(Exception) for testing generic exception handling
+"tests/**/*.py" = ["F401", "F811", "B017"]
 # Ignore redefinition of name property in abstract interpreter
 "es_translator/interpreters/abstract.py" = ["F811"]
 

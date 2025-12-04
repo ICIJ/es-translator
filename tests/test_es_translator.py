@@ -1,13 +1,13 @@
 import unittest
 from tempfile import mkdtemp
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import MagicMock, call, patch
 
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.utils import ObjectBase
 
+from es_translator.es_translator import EsTranslator
 from es_translator.interpreters import Apertium
 from es_translator.interpreters.apertium.apertium import ApertiumNotInstalledError
-from es_translator.es_translator import EsTranslator
 
 
 def is_apertium_installed():

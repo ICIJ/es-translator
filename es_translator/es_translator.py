@@ -6,17 +6,15 @@ of documents in Elasticsearch indices using various translation interpreters.
 import multiprocessing
 import sys
 from collections.abc import Generator
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from os import path
 from queue import Full
 from typing import Any
 
 # Use spawn method to avoid CUDA fork issues
 # Must be set before importing Pool/JoinableQueue
-try:
+with suppress(RuntimeError):
     multiprocessing.set_start_method('spawn', force=False)
-except RuntimeError:
-    pass  # Already set
 
 from multiprocessing import JoinableQueue, Manager, Pool
 

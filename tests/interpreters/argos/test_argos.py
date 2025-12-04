@@ -1,6 +1,8 @@
 from unittest import TestCase
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from es_translator.interpreters import Argos
+
 
 class TestArgos(TestCase):
     @classmethod
@@ -21,7 +23,7 @@ class TestArgos(TestCase):
     def test_has_fra_to_eng_is_supported(self):
         self.assertTrue(self.fra2eng.is_pair_available)
 
-    def test_has_ava_to_kau_isnt_supported(self): 
+    def test_has_ava_to_kau_isnt_supported(self):
         with self.assertRaises(Exception):
             self.argos = Argos(source = 'ava', target = 'kau')
 

@@ -1,13 +1,15 @@
 import os
-from os.path import isfile, isdir
-
-from unittest import TestCase
+from os.path import isdir, isfile
 from tempfile import mkdtemp
+from unittest import TestCase
+
 from es_translator.interpreters.apertium.repository import ApertiumRepository
 
 
-here = lambda: os.path.dirname(os.path.abspath(__file__))
-root = lambda x: os.path.abspath(os.path.join(here(), '../../../', x))
+def here():
+    return os.path.dirname(os.path.abspath(__file__))
+def root(x):
+    return os.path.abspath(os.path.join(here(), '../../../', x))
 # Use the .cache dir if it exists, or use a temporary dir
 cache_dir = root('.cache/APERTIUM') if os.path.isdir(root('.cache')) else mkdtemp()
 
@@ -35,10 +37,10 @@ class TestApertium(TestCase):
         self.assertEqual(type(self.apr.pair_packages), list)
 
     def test_is_apertium_pair(self):
-        self.assertTrue(self.apr.is_apertium_pair(dict(Package='apertium-eng-spa')))
-        self.assertTrue(self.apr.is_apertium_pair(dict(Package='apertium-spa-cat')))
-        self.assertFalse(self.apr.is_apertium_pair(dict(Package='nop-eng-spa')))
-        self.assertFalse(self.apr.is_apertium_pair(dict(Package='eng-spa')))
+        self.assertTrue(self.apr.is_apertium_pair({'Package': 'apertium-eng-spa'}))
+        self.assertTrue(self.apr.is_apertium_pair({'Package': 'apertium-spa-cat'}))
+        self.assertFalse(self.apr.is_apertium_pair({'Package': 'nop-eng-spa'}))
+        self.assertFalse(self.apr.is_apertium_pair({'Package': 'eng-spa'}))
 
     def test_download_package(self):
         package_file = self.apr.download_package('apertium-eng-spa')

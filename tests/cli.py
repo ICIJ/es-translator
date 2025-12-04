@@ -1,5 +1,7 @@
-from click import BadParameter
 from unittest import TestCase
+
+from click import BadParameter
+
 from es_translator.cli import validate_interpreter
 from es_translator.interpreters import Apertium, Argos
 
