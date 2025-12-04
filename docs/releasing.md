@@ -16,10 +16,9 @@ Before releasing, ensure you have:
 
 ## Release Checklist
 
-- [ ] All tests pass (`make test`)
-- [ ] Linting passes (`make lint`)
-- [ ] Documentation is up to date
-- [ ] CHANGELOG updated (if maintained)
+- All tests pass (`make test`)
+- Linting passes (`make lint`)
+- Documentation is up to date
 
 ## Release Process
 
