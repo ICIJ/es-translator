@@ -40,6 +40,7 @@ nav:
   - Usage: usage.md
   - Configuration: configuration.md
   - Datashare: datashare.md
+  - Troubleshooting: troubleshooting.md
   - Architecture: architecture.md
   - API Reference: api.md
   - Contributing: contributing.md
