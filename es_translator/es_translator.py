@@ -3,13 +3,22 @@
 This module provides the main EsTranslator class that orchestrates the translation
 of documents in Elasticsearch indices using various translation interpreters.
 """
+import multiprocessing
 import sys
 from collections.abc import Generator
 from contextlib import contextmanager
-from multiprocessing import JoinableQueue, Manager, Pool
 from os import path
 from queue import Full
 from typing import Any
+
+# Use spawn method to avoid CUDA fork issues
+# Must be set before importing Pool/JoinableQueue
+try:
+    multiprocessing.set_start_method('spawn', force=False)
+except RuntimeError:
+    pass  # Already set
+
+from multiprocessing import JoinableQueue, Manager, Pool
 
 from coloredlogs import StandardErrorHandler
 from elasticsearch import Elasticsearch, ElasticsearchException
