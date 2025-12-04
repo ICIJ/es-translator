@@ -8,11 +8,36 @@ from pathlib import Path
 from typing import Any, Optional
 
 from argostranslate import package as argospackage
+from argostranslate import settings as argossettings
 from argostranslate import translate as argostranslate
 from filelock import FileLock, Timeout
 
+from ...config import DEFAULT_DEVICE
 from ...logger import logger
 from ..abstract import AbstractInterpreter
+
+
+def configure_device(device: str) -> str:
+    """Configure the device for Argos translation.
+
+    Args:
+        device: Device type ('cpu', 'cuda', or 'auto').
+            'auto' will use CUDA if available, otherwise CPU.
+
+    Returns:
+        The actual device configured ('cpu' or 'cuda').
+    """
+    if device == 'auto':
+        try:
+            import torch
+            actual_device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        except ImportError:
+            actual_device = 'cpu'
+    else:
+        actual_device = device
+
+    argossettings.device = actual_device
+    return actual_device
 
 
 class ArgosPairNotAvailable(Exception):
@@ -40,7 +65,8 @@ class Argos(AbstractInterpreter):
             source: Optional[str] = None,
             target: Optional[str] = None,
             intermediary: Optional[str] = None,
-            pack_dir: Optional[str] = None) -> None:
+            pack_dir: Optional[str] = None,
+            device: Optional[str] = None) -> None:
         """Initialize the Argos interpreter.
 
         Args:
@@ -48,11 +74,15 @@ class Argos(AbstractInterpreter):
             target: Target language code.
             intermediary: Intermediary language code (not supported, will warn if provided).
             pack_dir: Directory for language packs (not supported, will warn if provided).
+            device: Device for translation ('cpu', 'cuda', or 'auto'). Defaults to config value.
 
         Raises:
             Exception: If the necessary language pair is not available.
         """
         super().__init__(source, target)
+        # Configure device for GPU/CPU translation
+        self.device = configure_device(device or DEFAULT_DEVICE)
+        logger.info(f'Argos using device: {self.device}')
         # Raise an exception if an intermediary language is provided
         if intermediary is not None:
             logger.warning(
