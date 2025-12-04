@@ -20,6 +20,7 @@ All CLI defaults can be overridden via environment variables:
 | `ES_TRANSLATOR_SOURCE_FIELD` | Default source field | `content` |
 | `ES_TRANSLATOR_TARGET_FIELD` | Default target field | `content_translated` |
 | `ES_TRANSLATOR_MAX_CONTENT_LENGTH` | Max content length | `19G` |
+| `ES_TRANSLATOR_DEVICE` | Device for Argos (cpu, cuda, auto) | `auto` |
 | `ES_TRANSLATOR_POOL_SIZE` | Default worker pool size | `1` |
 | `ES_TRANSLATOR_POOL_TIMEOUT` | Worker timeout (seconds) | `1800` |
 | `ES_TRANSLATOR_SCAN_SCROLL` | Elasticsearch scroll duration | `5m` |
@@ -89,6 +90,7 @@ es-translator --index my-index -s fr -t en
 | `--plan` | - | `false` | Queue for distributed mode |
 | `--broker-url` | `ES_TRANSLATOR_BROKER_URL` | `redis://localhost:6379` | Celery broker URL |
 | `--max-content-length` | `ES_TRANSLATOR_MAX_CONTENT_LENGTH` | `19G` | Max content length |
+| `--device` | `ES_TRANSLATOR_DEVICE` | `auto` | Device for Argos (cpu, cuda, auto) |
 | `--stdout-loglevel` | - | `ERROR` | Log level |
 | `--syslog-address` | `ES_TRANSLATOR_SYSLOG_ADDRESS` | `localhost` | Syslog address |
 | `--syslog-port` | `ES_TRANSLATOR_SYSLOG_PORT` | `514` | Syslog port |
