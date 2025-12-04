@@ -250,7 +250,7 @@ es-translator ...
 ```
 
 !!! note "CUDA Requirements"
-    GPU acceleration requires a CUDA-compatible GPU and the appropriate CUDA libraries installed. If CUDA is not available and `--device cuda` is specified, translation will fail.
+    GPU acceleration requires a CUDA-compatible GPU and the appropriate CUDA libraries installed. If CUDA is not available and `--device cuda` is specified, translation will fail. See [Install NVIDIA drivers on Ubuntu AWS instances](https://documentation.ubuntu.com/aws/aws-how-to/instances/install-nvidia-drivers/) for setup instructions.
 
 ## Distributed Translation
 
