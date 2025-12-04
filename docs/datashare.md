@@ -62,7 +62,7 @@ es-translator \
   --target-language en \
   --source-field content \
   --target-field contentTranslated \
-  --query-string "type:Document"
+  --query-string "type:Document AND language:FRENCH"
 ```
 
 ### Translate Specific Project
@@ -78,68 +78,6 @@ es-translator \
   --source-field content \
   --target-field contentTranslated
 ```
-
-## Docker Compose Setup
-
-### With Datashare's Elasticsearch
-
-If Datashare is running via Docker Compose, you can add es-translator as a service:
-
-```yaml
-version: '3.8'
-services:
-  datashare:
-    image: icij/datashare
-    ports:
-      - "8080:8080"
-    depends_on:
-      - elasticsearch
-      - redis
-
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.9
-    environment:
-      - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
-    ports:
-      - "9200:9200"
-
-  redis:
-    image: redis:6
-    ports:
-      - "6379:6379"
-
-  # Add es-translator worker
-  es-translator:
-    image: icij/es-translator
-    command: >
-      es-translator-tasks
-        --broker-url redis://redis:6379
-        --concurrency 2
-    depends_on:
-      - redis
-      - elasticsearch
-    restart: on-failure
-```
-
-### Running a Translation Job
-
-With this setup, plan translations from outside the container:
-
-```bash
-docker run --rm --network host icij/es-translator \
-  es-translator \
-    --url "http://localhost:9200" \
-    --index local-datashare \
-    --source-language fr \
-    --target-language en \
-    --source-field content \
-    --target-field contentTranslated \
-    --broker-url "redis://localhost:6379" \
-    --plan
-```
-
-The `es-translator` service will automatically pick up and process the queued translations.
 
 ## Handling Large Datasets
 
@@ -159,7 +97,7 @@ es-translator \
   --source-field content \
   --target-field contentTranslated \
   --broker-url "redis://redis:6379" \
-  --query-string "type:Document" \
+  --query-string "type:Document AND language:FRENCH" \
   --plan
 
 # Step 2: Start multiple workers
