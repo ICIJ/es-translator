@@ -17,12 +17,14 @@ from ...logger import logger
 from ..abstract import AbstractInterpreter
 
 
-def configure_device(device: str) -> str:
+def configure_device(device: str, apply: bool = True) -> str:
     """Configure the device for Argos translation.
 
     Args:
         device: Device type ('cpu', 'cuda', or 'auto').
             'auto' will use CUDA if available, otherwise CPU.
+        apply: If True, apply the setting to argostranslate immediately.
+            Set to False to defer until first translation (for multiprocessing).
 
     Returns:
         The actual device configured ('cpu' or 'cuda').
@@ -36,7 +38,8 @@ def configure_device(device: str) -> str:
     else:
         actual_device = device
 
-    argossettings.device = actual_device
+    if apply:
+        argossettings.device = actual_device
     return actual_device
 
 
@@ -80,9 +83,9 @@ class Argos(AbstractInterpreter):
             Exception: If the necessary language pair is not available.
         """
         super().__init__(source, target)
-        # Configure device for GPU/CPU translation
-        self.device = configure_device(device or DEFAULT_DEVICE)
-        logger.info(f'Argos using device: {self.device}')
+        # Store device preference - defer CUDA initialization to avoid fork issues
+        self._device_preference = device or DEFAULT_DEVICE
+        self._device_configured = False
         # Raise an exception if an intermediary language is provided
         if intermediary is not None:
             logger.warning(
@@ -221,6 +224,13 @@ class Argos(AbstractInterpreter):
                 installed_languages))[0]
         return source.get_translation(target)
 
+    def _ensure_device_configured(self) -> None:
+        """Configure device on first use to avoid CUDA fork issues."""
+        if not self._device_configured:
+            self.device = configure_device(self._device_preference)
+            logger.info(f'Argos using device: {self.device}')
+            self._device_configured = True
+
     def translate(self, text_input: str) -> str:
         """Translate input text from source language to target language.
 
@@ -230,4 +240,5 @@ class Argos(AbstractInterpreter):
         Returns:
             The translated text in the target language.
         """
+        self._ensure_device_configured()
         return self.translation.translate(text_input)
