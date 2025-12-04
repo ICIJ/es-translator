@@ -2,14 +2,15 @@
 
 This module provides the Argos interpreter class that interfaces with the
 argostranslate library for neural machine translation between languages.
+
+Note: argostranslate imports are deferred to allow setting ARGOS_DEVICE_TYPE
+environment variable before the library reads its configuration.
 """
+import os
 import tempfile
 from pathlib import Path
 from typing import Any, Optional
 
-from argostranslate import package as argospackage
-from argostranslate import settings as argossettings
-from argostranslate import translate as argostranslate
 from filelock import FileLock, Timeout
 
 from ...config import DEFAULT_DEVICE
@@ -17,14 +18,12 @@ from ...logger import logger
 from ..abstract import AbstractInterpreter
 
 
-def configure_device(device: str, apply: bool = True) -> str:
+def _configure_device(device: str) -> str:
     """Configure the device for Argos translation.
 
     Args:
         device: Device type ('cpu', 'cuda', or 'auto').
             'auto' will use CUDA if available, otherwise CPU.
-        apply: If True, apply the setting to argostranslate immediately.
-            Set to False to defer until first translation (for multiprocessing).
 
     Returns:
         The actual device configured ('cpu' or 'cuda').
@@ -38,9 +37,29 @@ def configure_device(device: str, apply: bool = True) -> str:
     else:
         actual_device = device
 
-    if apply:
-        argossettings.device = actual_device
+    # Set both env var and settings directly
+    os.environ['ARGOS_DEVICE_TYPE'] = actual_device
+    settings = _get_argos_settings()
+    settings.device = actual_device
     return actual_device
+
+
+def _get_argos_package():
+    """Lazy import of argostranslate.package."""
+    from argostranslate import package
+    return package
+
+
+def _get_argos_translate():
+    """Lazy import of argostranslate.translate."""
+    from argostranslate import translate
+    return translate
+
+
+def _get_argos_settings():
+    """Lazy import of argostranslate.settings."""
+    from argostranslate import settings
+    return settings
 
 
 class ArgosPairNotAvailable(Exception):
@@ -83,7 +102,7 @@ class Argos(AbstractInterpreter):
             Exception: If the necessary language pair is not available.
         """
         super().__init__(source, target)
-        # Store device preference - defer CUDA initialization to avoid fork issues
+        # Configure device BEFORE any argostranslate imports
         self._device_preference = device or DEFAULT_DEVICE
         self._device_configured = False
         # Raise an exception if an intermediary language is provided
@@ -93,7 +112,9 @@ class Argos(AbstractInterpreter):
         if pack_dir is not None:
             logger.warning(
                 'Argos interpreter does not support custom pack directory')
-        # Raise an exception if the language pair is unknown
+        # Check pair availability - this will trigger argostranslate import
+        # so we configure device first
+        self._ensure_device_configured()
         if not self.is_pair_available and self.has_pair:
             try:
                 self.download_necessary_languages()
@@ -102,6 +123,16 @@ class Argos(AbstractInterpreter):
         else:
             logger.info(f'Existing package(s) found for pair {self.pair}')
 
+    def _ensure_device_configured(self) -> None:
+        """Configure device before argostranslate imports.
+
+        Sets ARGOS_DEVICE_TYPE env var and argostranslate settings.device.
+        """
+        if not self._device_configured:
+            self.device = _configure_device(self._device_preference)
+            logger.info(f'Argos using device: {self.device}')
+            self._device_configured = True
+
     @property
     def is_pair_available(self) -> bool:
         """Check if the necessary language pair is available in installed packages.
@@ -109,6 +140,7 @@ class Argos(AbstractInterpreter):
         Returns:
             True if the language pair is available, False otherwise.
         """
+        argospackage = _get_argos_package()
         for package in argospackage.get_installed_packages():
             if package.from_code == self.source_alpha_2 and package.to_code == self.target_alpha_2:
                 return True
@@ -122,6 +154,7 @@ class Argos(AbstractInterpreter):
             List of installed language codes. Returns empty list if languages cannot be retrieved.
         """
         try:
+            argostranslate = _get_argos_translate()
             installed_languages = argostranslate.get_installed_languages()
             return [lang.code for lang in installed_languages]
         except AttributeError:
@@ -129,6 +162,7 @@ class Argos(AbstractInterpreter):
 
     def update_package_index(self) -> None:
         """Update the Argos package index to fetch latest available packages."""
+        argospackage = _get_argos_package()
         argospackage.update_package_index()
 
     def find_necessary_package(self) -> Any:
@@ -142,6 +176,7 @@ class Argos(AbstractInterpreter):
         Raises:
             ArgosPairNotAvailable: If the necessary language package could not be found.
         """
+        argospackage = _get_argos_package()
         for package in argospackage.get_available_packages():
             if package.from_code == self.source_alpha_2 and package.to_code == self.target_alpha_2:
                 return package
@@ -156,6 +191,7 @@ class Argos(AbstractInterpreter):
         Returns:
             True if the package is installed, False otherwise.
         """
+        argospackage = _get_argos_package()
         return package in argospackage.get_installed_packages()
 
     def download_and_install_package(self, package: Any) -> Optional[Any]:
@@ -173,6 +209,7 @@ class Argos(AbstractInterpreter):
         Raises:
             ArgosPackageDownloadLockTimeout: If lock cannot be acquired within timeout.
         """
+        argospackage = _get_argos_package()
         try:
             temp_dir = Path(tempfile.gettempdir())
             lock_path = temp_dir / f'{package.from_code}_{package.to_code}.lock'
@@ -213,6 +250,7 @@ class Argos(AbstractInterpreter):
         Raises:
             IndexError: If either the source or target language is not installed.
         """
+        argostranslate = _get_argos_translate()
         installed_languages = argostranslate.get_installed_languages()
         source = list(
             filter(
@@ -224,13 +262,6 @@ class Argos(AbstractInterpreter):
                 installed_languages))[0]
         return source.get_translation(target)
 
-    def _ensure_device_configured(self) -> None:
-        """Configure device on first use to avoid CUDA fork issues."""
-        if not self._device_configured:
-            self.device = configure_device(self._device_preference)
-            logger.info(f'Argos using device: {self.device}')
-            self._device_configured = True
-
     def translate(self, text_input: str) -> str:
         """Translate input text from source language to target language.
 
@@ -240,5 +271,6 @@ class Argos(AbstractInterpreter):
         Returns:
             The translated text in the target language.
         """
+        # Always configure device before translation (needed for multiprocessing workers)
         self._ensure_device_configured()
         return self.translation.translate(text_input)
