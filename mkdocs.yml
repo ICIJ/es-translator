@@ -37,9 +37,13 @@ extra_css:
   - stylesheets/extra.css
 nav:
   - Home: index.md
-  - API Reference: api.md
   - Usage: usage.md
+  - Configuration: configuration.md
+  - Datashare: datashare.md
+  - Architecture: architecture.md
+  - API Reference: api.md
   - Contributing: contributing.md
+  - Releasing: releasing.md
 extra:
   social:
     - icon: fontawesome/brands/github

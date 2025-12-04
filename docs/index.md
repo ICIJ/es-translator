@@ -1,91 +1,103 @@
-# ES Translator [![](https://img.shields.io/github/actions/workflow/status/icij/es-translator/main.yml)](https://github.com/ICIJ/es-translator/actions) [![](https://img.shields.io/pypi/pyversions/es-translator)](https://pypi.org/project/es-translator/) 
+# ES Translator
 
 A lazy yet bulletproof machine translation tool for Elasticsearch.
 
-## Installation (Ubuntu)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/icij/es-translator/main.yml)](https://github.com/ICIJ/es-translator/actions)
+[![PyPI](https://img.shields.io/pypi/pyversions/es-translator)](https://pypi.org/project/es-translator/)
+[![Docker](https://img.shields.io/docker/pulls/icij/es-translator)](https://hub.docker.com/r/icij/es-translator)
 
-Install Apertium:
+## What is es-translator?
 
-```bash
-wget https://apertium.projectjj.com/apt/install-nightly.sh -O - | sudo bash
-sudo apt install apertium-all-dev
-```
+es-translator reads documents from Elasticsearch, translates them using machine translation, and writes the translations back. It's designed for bulk translation of large document collections.
 
-Then install es-translator with pip:
+## Features
 
-```bash
-python3 -m pip install --user es-translator
-```
+- **Two translation engines**
+    - **Argos**: Neural machine translation with ~30 languages
+    - **Apertium**: Rule-based translation with 40+ language pairs
 
-## Installation (Docker)
+- **Scalable processing**
+    - Parallel workers for multi-core systems
+    - Distributed mode with Celery/Redis for multi-server deployments
 
-Nothing to do as long as you have Docker on your system:
+- **Elasticsearch integration**
+    - Direct read/write with scroll API
+    - Query string filtering
+    - Incremental translation (skip already-translated docs)
 
-```
-docker run -it icij/es-translator es-translator --help
-```
+## Quick Start
 
-## Usage
+=== "pip"
 
-```
-Usage: es-translator [OPTIONS]
+    ```bash
+    pip install es-translator
 
-Options:
-  -u, --url TEXT                  Elasticsearch URL
-  -i, --index TEXT                Elasticsearch Index
-  -r, --interpreter TEXT          Interpreter to use to perform the
-                                  translation
-  -s, --source-language TEXT      Source language to translate from
-                                  [required]
-  -t, --target-language TEXT      Target language to translate to  [required]
-  --intermediary-language TEXT    An intermediary language to use when no
-                                  translation is available between the source
-                                  and the target. If none is provided this
-                                  will be calculated automatically.
-  --source-field TEXT             Document field to translate
-  --target-field TEXT             Document field where the translations are
-                                  stored
-  -q, --query-string TEXT         Search query string to filter result
-  -d, --data-dir PATH             Path to the directory where the language
-                                  model will be downloaded
-  --scan-scroll TEXT              Scroll duration (set to higher value if
-                                  you're processing a lot of documents)
-  --dry-run                       Don't save anything in Elasticsearch
-  -f, --force                     Override existing translation in
-                                  Elasticsearch
-  --pool-size INTEGER             Number of parallel processes to start
-  --pool-timeout INTEGER          Timeout to add a translation
-  --throttle INTEGER              Throttle between each translation (in ms)
-  --syslog-address TEXT           Syslog address
-  --syslog-port INTEGER           Syslog port
-  --syslog-facility TEXT          Syslog facility
-  --stdout-loglevel TEXT          Change the default log level for stdout
-                                  error handler
-  --progressbar / --no-progressbar
-                                  Display a progressbar
-  --plan                          Plan translations into a queue instead of
-                                  processing them now
-  --broker-url TEXT               Celery broker URL (only needed when planning
-                                  translation)
-  --max-content-length TEXT       Max translated content length
-                                  (<[0-9]+[KMG]?>) to avoid highlight
-                                  errors(see http://github.com/ICIJ/datashare/
-                                  issues/1184)
-  --help                          Show this message and exit.
-```
+    es-translator \
+      --url "http://localhost:9200" \
+      --index my-index \
+      --source-language fr \
+      --target-language en
+    ```
 
-Learn more about how to use this command in the [Usage Documentation](usage.md).
+=== "Docker"
 
-## API
+    ```bash
+    docker run -it --network host icij/es-translator \
+      es-translator \
+        --url "http://localhost:9200" \
+        --index my-index \
+        --source-language fr \
+        --target-language en
+    ```
 
-The documentation is generated from the docstrings in the code using the `mkdocstrings` plugin. It provides detailed information about the classes, methods, and attributes in the EsTranslator library.
+## Documentation
 
-You can explore the [API Documentation](api.md) for more information.
+<div class="grid cards" markdown>
 
-## Contributing
+-   :material-book-open-variant:{ .lg .middle } **[Usage Guide](usage.md)**
 
-Contributions are welcome! If you encounter any issues or have suggestions for improvements, please open an issue on the [GitHub repository](https://github.com/icij/es-translator). If you're willing to help, check the page about [how to contribute](contributing.md) to this project.
+    ---
+
+    Complete guide to using es-translator: commands, options, and examples.
+
+-   :material-cog:{ .lg .middle } **[Configuration](configuration.md)**
+
+    ---
+
+    All CLI options and environment variables.
+
+-   :material-database:{ .lg .middle } **[Datashare Integration](datashare.md)**
+
+    ---
+
+    Using es-translator with ICIJ's Datashare platform.
+
+-   :material-sitemap:{ .lg .middle } **[Architecture](architecture.md)**
+
+    ---
+
+    How es-translator works internally.
+
+-   :material-api:{ .lg .middle } **[API Reference](api.md)**
+
+    ---
+
+    Python API documentation for programmatic usage.
+
+-   :material-github:{ .lg .middle } **[Contributing](contributing.md)**
+
+    ---
+
+    How to contribute to es-translator.
+
+</div>
+
+## Links
+
+- [GitHub Repository](https://github.com/icij/es-translator)
+- [PyPI Package](https://pypi.org/project/es-translator/)
+- [Docker Hub](https://hub.docker.com/r/icij/es-translator)
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](https://github.com/icij/es-translator/blob/main/LICENSE.md) file for more details.
+MIT License - See [LICENSE](https://github.com/icij/es-translator/blob/main/LICENSE.md) for details.
