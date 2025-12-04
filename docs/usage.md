@@ -221,6 +221,37 @@ es-translator \
   --throttle 100  # 100ms delay
 ```
 
+### GPU Acceleration
+
+Argos supports GPU acceleration via CUDA for faster neural translation:
+
+```bash
+es-translator \
+  --url "http://localhost:9200" \
+  --index my-index \
+  --source-language fr \
+  --target-language en \
+  --device cuda
+```
+
+Available device options:
+
+| Device | Description |
+|--------|-------------|
+| `auto` | Use CUDA if available, otherwise CPU (default) |
+| `cuda` | Force GPU usage (requires CUDA) |
+| `cpu` | Force CPU usage |
+
+You can also set the device via environment variable:
+
+```bash
+export ES_TRANSLATOR_DEVICE=cuda
+es-translator ...
+```
+
+!!! note "CUDA Requirements"
+    GPU acceleration requires a CUDA-compatible GPU and the appropriate CUDA libraries installed. If CUDA is not available and `--device cuda` is specified, translation will fail.
+
 ## Distributed Translation
 
 For very large datasets, distribute translation across multiple servers using Celery and Redis.
@@ -321,6 +352,7 @@ Options:
   --plan                          Queue for distributed translation
   --broker-url TEXT               Redis URL for distributed mode
   --max-content-length TEXT       Max content length (e.g., 10M, 1G)
+  --device [cpu|cuda|auto]        Device for Argos translation (default: auto)
   --stdout-loglevel TEXT          Log level (DEBUG, INFO, WARNING, ERROR)
   --help                          Show help
 ```
