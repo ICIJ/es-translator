@@ -1,3 +1,7 @@
+---
+icon: material/home
+---
+
 # ES Translator
 
 A lazy yet bulletproof machine translation tool for Elasticsearch.

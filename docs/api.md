@@ -1,3 +1,7 @@
+---
+icon: material/api
+---
+
 # API Reference
 
 Welcome to the API reference for EsTranslator. This section provides detailed information about the classes, methods, and attributes available in the EsTranslator library.

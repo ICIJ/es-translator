@@ -1,3 +1,7 @@
+---
+icon: material/tag
+---
+
 # Releasing
 
 This guide describes how to release a new version of es-translator. Only maintainers with publish access can perform releases.
