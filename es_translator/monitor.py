@@ -239,8 +239,8 @@ class TranslationMonitor:
 
         return Panel(title, style='cyan')
 
-    def create_progress_panel(self) -> Panel:
-        """Create the translation progress panel based on tasks."""
+    def create_status_panel(self) -> Panel:
+        """Create the combined queue status and progress panel."""
         total = self.stats.total_tasks if self.stats.total_tasks > 0 else 1
         completed = self.stats.completed_tasks
         remaining = self.stats.pending_tasks + self.stats.active_tasks
@@ -259,29 +259,22 @@ class TranslationMonitor:
         else:
             eta_str = 'calculating'
 
-        table = Table(show_header=False, box=None, padding=(0, 2))
+        table = Table(show_header=False, box=None, padding=(0, 0), expand=True)
         table.add_column('Metric', style='bold')
         table.add_column('Value', justify='right')
 
+        # Progress info
         table.add_row('Progress', f'[green]{pct:.1f}%[/green]')
         table.add_row('Completed', f'[cyan]{completed:,}[/cyan] / {total:,}')
         table.add_row('Remaining', f'[yellow]{remaining:,}[/yellow]')
         table.add_row('ETA', f'[dim]{eta_str}[/dim]')
-
-        return Panel(table, title='Progress', border_style='green')
-
-    def create_queue_panel(self) -> Panel:
-        """Create the Celery queue status panel."""
-        table = Table(show_header=False, box=None, padding=(0, 2))
-        table.add_column('Metric', style='bold')
-        table.add_column('Value', justify='right')
-
+        table.add_row('', '')  # Spacer
+        # Queue info
         table.add_row('Pending', f'[yellow]{self.stats.pending_tasks:,}[/yellow]')
         table.add_row('Active', f'[green]{self.stats.active_tasks:,}[/green]')
-        table.add_row('Completed', f'[cyan]{self.stats.completed_tasks:,}[/cyan]')
         table.add_row('Workers', f'[magenta]{len(self.stats.workers):,}[/magenta]')
 
-        return Panel(table, title='Queue Status', border_style='yellow')
+        return Panel(table, title='Status', border_style='green')
 
     def create_throughput_panel(self) -> Panel:
         """Create the throughput graph panel using plotext."""
@@ -335,13 +328,8 @@ class TranslationMonitor:
         )
 
         self.layout['main'].split_row(
-            Layout(name='left'),
+            Layout(name='status'),
             Layout(name='right', ratio=2),
-        )
-
-        self.layout['left'].split(
-            Layout(name='queue'),
-            Layout(name='progress'),
         )
 
         self.layout['right'].split(
@@ -368,9 +356,8 @@ class TranslationMonitor:
     def _update_panels(self) -> None:
         """Update all dynamic panels with current data."""
         self.layout['header'].update(self.create_header())
-        self.layout['queue'].update(self.create_queue_panel())
+        self.layout['status'].update(self.create_status_panel())
         self.layout['workers'].update(self.create_workers_panel())
-        self.layout['progress'].update(self.create_progress_panel())
         self.layout['throughput'].update(self.create_throughput_panel())
 
     def run(self) -> None:

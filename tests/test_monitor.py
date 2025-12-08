@@ -243,50 +243,39 @@ class TestTranslationMonitor:
 
         assert isinstance(panel, Panel)
 
-    def test_create_progress_panel(self, monitor):
-        """Test progress panel creation."""
+    def test_create_status_panel(self, monitor):
+        """Test combined status panel creation."""
         monitor.stats.total_tasks = 1000
         monitor.stats.completed_tasks = 500
         monitor.stats.pending_tasks = 400
         monitor.stats.active_tasks = 100
+        monitor.stats.workers = {'worker1': {}, 'worker2': {}}
 
-        panel = monitor.create_progress_panel()
+        panel = monitor.create_status_panel()
 
         assert isinstance(panel, Panel)
-        assert panel.title == 'Progress'
+        assert panel.title == 'Status'
 
-    def test_create_progress_panel_with_eta(self, monitor):
-        """Test progress panel with ETA calculation."""
+    def test_create_status_panel_with_eta(self, monitor):
+        """Test status panel with ETA calculation."""
         monitor.stats.total_tasks = 1000
         monitor.stats.completed_tasks = 500
         monitor.stats.pending_tasks = 400
         monitor.stats.active_tasks = 100
         monitor.stats.throughput_history = deque([2.0, 2.5, 2.0])  # ~2 tasks/sec avg
 
-        panel = monitor.create_progress_panel()
+        panel = monitor.create_status_panel()
 
         assert isinstance(panel, Panel)
 
-    def test_create_progress_panel_zero_total(self, monitor):
-        """Test progress panel handles zero total gracefully."""
+    def test_create_status_panel_zero_total(self, monitor):
+        """Test status panel handles zero total gracefully."""
         monitor.stats.total_tasks = 0
         monitor.stats.completed_tasks = 0
 
-        panel = monitor.create_progress_panel()
+        panel = monitor.create_status_panel()
 
         assert isinstance(panel, Panel)
-
-    def test_create_queue_panel(self, monitor):
-        """Test queue panel creation."""
-        monitor.stats.pending_tasks = 100
-        monitor.stats.active_tasks = 4
-        monitor.stats.completed_tasks = 50
-        monitor.stats.workers = {'worker1': {}, 'worker2': {}}
-
-        panel = monitor.create_queue_panel()
-
-        assert isinstance(panel, Panel)
-        assert panel.title == 'Queue Status'
 
     def test_create_throughput_panel_no_data(self, monitor):
         """Test throughput panel when no data is available."""
