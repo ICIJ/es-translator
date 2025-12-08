@@ -117,14 +117,14 @@ class TranslationMonitor:
         self,
         broker_url: str,
         refresh_interval: float = 2.0,
-        history_duration: float = 600.0,
+        history_duration: float = 60.0,
     ):
         """Initialize the monitor.
 
         Args:
             broker_url: Celery broker URL (Redis).
             refresh_interval: How often to refresh stats (seconds).
-            history_duration: Duration of throughput history in seconds (default: 600 = 10 min).
+            history_duration: Duration of throughput history in seconds (default: 60 = 1 min).
         """
         self.broker_url = broker_url
         self.refresh_interval = refresh_interval
