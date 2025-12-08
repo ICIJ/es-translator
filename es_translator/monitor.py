@@ -34,9 +34,9 @@ class ThroughputChart:
 
     def __rich_console__(self, console: Console, options: ConsoleOptions) -> RenderResult:
         """Render the chart to fit available space."""
-        width = options.max_width - 8  # Account for panel borders and right axis
+        width = options.max_width
         height = options.height or 10
-        height = max(height - 3, 4)  # Account for header line and padding, minimum 4
+        height = max(height - 2, 4)  # Account for header line and padding, minimum 4
 
         # Build content with stats header
         header = Text()
@@ -53,6 +53,7 @@ class ThroughputChart:
         plt.clear_figure()
         plt.theme('clear')
         plt.plot(self.history, marker='braille')
+
         plt.plotsize(width, height)
         plt.frame(False)
         plt.xticks([])
@@ -66,19 +67,9 @@ class ThroughputChart:
 
         # Add right axis with scale
         chart_lines = chart_str.rstrip('\n').split('\n')
-
-        for i, line in enumerate(chart_lines):
+        # Add one empty text to each line for proper Rich rendering
+        for line in chart_lines:
             row = Text(line)
-            # Add axis labels: top, middle, bottom (very muted)
-            axis_style = 'bright_black'
-            if i == 0:
-                row.append(f'│{max_val:>5.1f}', style=axis_style)
-            elif i == len(chart_lines) // 2:
-                row.append(f'│{max_val / 2:>5.1f}', style=axis_style)
-            elif i == len(chart_lines) - 1:
-                row.append('│  0.0', style=axis_style)
-            else:
-                row.append('│', style=axis_style)
             yield row
 
 
