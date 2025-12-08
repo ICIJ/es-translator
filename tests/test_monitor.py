@@ -34,14 +34,15 @@ class TestMonitorStats:
         """Test that throughput_history has maxlen of 60."""
         stats = MonitorStats()
 
-        # Add more than 60 items
-        for i in range(100):
+        # Default maxlen is 300 (but TranslationMonitor sets it based on history_duration)
+        # Add more than 300 items
+        for i in range(400):
             stats.throughput_history.append(i)
 
-        assert len(stats.throughput_history) == 60
-        # Should keep the last 60 items
-        assert stats.throughput_history[0] == 40
-        assert stats.throughput_history[-1] == 99
+        assert len(stats.throughput_history) == 300
+        # Should keep the last 300 items
+        assert stats.throughput_history[0] == 100
+        assert stats.throughput_history[-1] == 399
 
 
 class TestTranslationMonitor:
@@ -51,10 +52,14 @@ class TestTranslationMonitor:
     def monitor(self):
         """Create a TranslationMonitor instance for testing."""
         with patch('es_translator.monitor.Celery'):
-            return TranslationMonitor(
+            mon = TranslationMonitor(
                 broker_url='redis://localhost:6379/0',
                 refresh_interval=5.0,
+                history_duration=60.0,  # Short history for testing (12 data points)
             )
+            # Clear the pre-filled history for tests that check history length
+            mon.stats.throughput_history.clear()
+            return mon
 
     def test_init(self, monitor):
         """Test TranslationMonitor initialization."""
