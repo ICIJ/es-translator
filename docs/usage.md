@@ -294,6 +294,21 @@ docker run \
     --concurrency 2
 ```
 
+### Step 3: Monitor Progress
+
+Use the live monitoring interface to track translation progress:
+
+```bash
+es-translator-monitor --broker-url "redis://redis:6379"
+```
+
+The monitor displays:
+
+- **Queue Status**: Pending, active, and completed tasks
+- **Progress**: Completion percentage, remaining tasks, and ETA
+- **Workers**: Connected workers with per-worker throughput (tasks/sec)
+- **Throughput**: Real-time graph of translation speed over time
+
 ## Testing & Debugging
 
 ### Dry Run
@@ -382,4 +397,17 @@ Options:
   --data-dir PATH   Directory for language packs
   --local           Show only locally installed pairs
   --help            Show help
+```
+
+### es-translator-monitor
+
+Live monitoring interface for distributed translation workers.
+
+```
+es-translator-monitor [OPTIONS]
+
+Options:
+  --broker-url TEXT   Redis URL (default: redis://localhost:6379)
+  --refresh FLOAT     Refresh interval in seconds (default: 2.0)
+  --help              Show help
 ```

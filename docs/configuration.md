@@ -112,6 +112,13 @@ es-translator --index my-index -s fr -t en
 | `--local` | `false` | Show local pairs only |
 | `--stdout-loglevel` | `ERROR` | Log level |
 
+### es-translator-monitor
+
+| Option | Environment Variable | Default | Description |
+|--------|---------------------|---------|-------------|
+| `--broker-url` | `ES_TRANSLATOR_BROKER_URL` | `redis://localhost:6379` | Celery broker URL |
+| `--refresh` | - | `2.0` | Refresh interval (seconds) |
+
 ## Content Length Format
 
 The `--max-content-length` option accepts values with size suffixes:
