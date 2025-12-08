@@ -302,7 +302,8 @@ class TranslationMonitor:
         table.add_column('Processed', justify='right')
         table.add_column('Tasks/s', justify='right')
 
-        for worker_name, info in self.stats.workers.items():
+        for worker_name in sorted(self.stats.workers.keys()):
+            info = self.stats.workers[worker_name]
             # Shorten worker name for display
             short_name = worker_name.split('@')[-1] if '@' in worker_name else worker_name
             if len(short_name) > 20:
