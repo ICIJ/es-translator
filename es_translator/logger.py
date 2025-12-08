@@ -3,6 +3,7 @@
 This module provides logging setup utilities for the es-translator application,
 including syslog and stdout handlers with colored output.
 """
+
 import logging
 import sys
 from logging.handlers import SysLogHandler
@@ -20,14 +21,10 @@ def default_log_formatter() -> logging.Formatter:
     Returns:
         Formatter with timestamp, name, level, and message.
     """
-    return logging.Formatter(
-        '%(asctime)s :: %(name)s :: %(levelname)s :: %(message)s')
+    return logging.Formatter('%(asctime)s :: %(name)s :: %(levelname)s :: %(message)s')
 
 
-def add_syslog_handler(
-        address: str = 'localhost',
-        port: int = 514,
-        facility: int = LOG_LOCAL7) -> None:
+def add_syslog_handler(address: str = 'localhost', port: int = 514, facility: int = LOG_LOCAL7) -> None:
     """Add a syslog handler to the logger.
 
     Args:

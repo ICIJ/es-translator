@@ -3,6 +3,7 @@
 This module provides centralized configuration with environment variable support.
 All configuration values can be overridden via environment variables.
 """
+
 import os
 
 # Elasticsearch configuration

@@ -3,6 +3,7 @@
 This module provides worker functions for translating Elasticsearch documents
 in parallel using a queue-based architecture.
 """
+
 from multiprocessing import JoinableQueue
 from multiprocessing.managers import ValueProxy
 from queue import Full
@@ -23,9 +24,7 @@ class FatalTranslationException(Exception):
     """
 
 
-def translation_worker(
-        queue: JoinableQueue,
-        shared_fatal_error: ValueProxy[Any]) -> None:
+def translation_worker(queue: JoinableQueue, shared_fatal_error: ValueProxy[Any]) -> None:
     """Worker function that translates documents from the queue in parallel.
 
     Continuously retrieves documents from the queue and translates them

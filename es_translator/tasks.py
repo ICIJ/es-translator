@@ -10,8 +10,7 @@ app.conf.task_default_queue = 'es_translator:default'
 
 
 @app.task
-def translate_document_task(
-        translator_options: dict[str, Any], document_params: dict[str, Any]) -> None:
+def translate_document_task(translator_options: dict[str, Any], document_params: dict[str, Any]) -> None:
     """Celery task to translate a document.
 
     Args:
@@ -19,6 +18,7 @@ def translate_document_task(
         document_params (Dict[str, Any]): A dictionary of parameters to find the document.
     """
     from es_translator import EsTranslator
+
     # Initialize an EsTranslator with the options from the task
     es_translator = EsTranslator(translator_options)
     # Find the document using params

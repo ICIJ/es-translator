@@ -2,16 +2,13 @@
 
 This module provides helper functions for creating symbolic links.
 """
+
 from os.path import isdir, isfile, islink
 
 from sh import ln, rm
 
 
-def create_symlink(
-        source: str,
-        target: str,
-        options: str = '-s',
-        force: bool = True) -> None:
+def create_symlink(source: str, target: str, options: str = '-s', force: bool = True) -> None:
     """Create a symbolic link from source to target.
 
     Args:

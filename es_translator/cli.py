@@ -3,6 +3,7 @@
 This module provides Click-based CLI commands for translating Elasticsearch documents,
 managing translation workers, and listing available language pairs.
 """
+
 import logging
 import re
 from tempfile import mkdtemp
@@ -14,6 +15,7 @@ from es_translator import EsTranslator, config
 from es_translator.interpreters import Apertium, Argos
 from es_translator.interpreters.apertium.pairs import Pairs
 from es_translator.logger import add_stdout_handler, add_syslog_handler
+from es_translator.monitor import TranslationMonitor
 from es_translator.tasks import app as celery_app
 
 
@@ -36,8 +38,7 @@ def validate_loglevel(ctx: click.Context, param: click.Parameter, value: Any) ->
             return getattr(logging, value)
         return int(value)
     except (AttributeError, ValueError):
-        raise click.BadParameter(
-            'must be a valid log level (CRITICAL, ERROR, WARNING, INFO, DEBUG or NOTSET)')
+        raise click.BadParameter('must be a valid log level (CRITICAL, ERROR, WARNING, INFO, DEBUG or NOTSET)')
 
 
 def validate_progressbar(ctx: click.Context, param: click.Parameter, value: Optional[bool]) -> bool:
@@ -70,13 +71,15 @@ def validate_interpreter(ctx: click.Context, param: click.Parameter, value: str)
     Raises:
         click.BadParameter: If interpreter name is not valid.
     """
-    interpreters = (Apertium, Argos, )
+    interpreters = (
+        Apertium,
+        Argos,
+    )
     for interpreter in interpreters:
         if value.upper() == interpreter.name.upper():
             return interpreter.name
     names = (interpreter.name for interpreter in interpreters)
-    raise click.BadParameter(
-        f'must be a valid interpreter name ({", ".join(names)})')
+    raise click.BadParameter(f'must be a valid interpreter name ({", ".join(names)})')
 
 
 def validate_max_content_length(ctx: click.Context, param: click.Parameter, value: str) -> int:
@@ -99,99 +102,83 @@ def validate_max_content_length(ctx: click.Context, param: click.Parameter, valu
         if value.endswith('K'):
             return int(value[:-1]) * 1024
         if value.endswith('M'):
-            return int(value[:-1]) * 1024 ** 2
+            return int(value[:-1]) * 1024**2
         if value.endswith('G'):
-            return int(value[:-1]) * 1024 ** 3
+            return int(value[:-1]) * 1024**3
         return int(value)
     else:
         raise click.BadParameter('max content length should be a number optionally followed by K or M or G')
 
 
 @click.command()
-@click.option('-u', '--url', help='Elastichsearch URL',
-              default=config.ELASTICSEARCH_URL)
+@click.option('-u', '--url', help='Elastichsearch URL', default=config.ELASTICSEARCH_URL)
 @click.option('-i', '--index', help='Elastichsearch Index', default=config.ELASTICSEARCH_INDEX)
-@click.option('-r',
-              '--interpreter',
-              help='Interpreter to use to perform the translation',
-              default=config.DEFAULT_INTERPRETER,
-              callback=validate_interpreter)
-@click.option('-s',
-              '--source-language',
-              help='Source language to translate from',
-              required=True,
-              default=None)
-@click.option('-t',
-              '--target-language',
-              help='Target language to translate to',
-              required=True,
-              default=None)
-@click.option('--intermediary-language',
-              help='An intermediary language to use when no translation is available between the source and the target. If none is provided this will be calculated automatically.')
-@click.option('--source-field',
-              help='Document field to translate',
-              default=config.DEFAULT_SOURCE_FIELD)
-@click.option('--target-field',
-              help='Document field where the translations are stored',
-              default=config.DEFAULT_TARGET_FIELD)
-@click.option('-q', '--query-string',
-              help='Search query string to filter result')
-@click.option('-d',
-              '--data-dir',
-              help='Path to the directory where to language model will be downloaded',
-              type=click.Path(exists=True,
-                              dir_okay=True,
-                              writable=True,
-                              readable=True),
-              default=mkdtemp())
-@click.option('--scan-scroll',
-              help='Scroll duration (set to higher value if you\'re processing a lot of documents)',
-              default=config.DEFAULT_SCAN_SCROLL)
-@click.option('--dry-run',
-              help='Don\'t save anything in Elasticsearch',
-              is_flag=True,
-              default=False)
-@click.option('-f',
-              '--force',
-              help='Override existing translation in Elasticsearch',
-              is_flag=True,
-              default=False)
-@click.option('--pool-size',
-              help='Number of parallel processes to start',
-              default=config.DEFAULT_POOL_SIZE)
-@click.option('--pool-timeout',
-              help='Timeout to add a translation',
-              default=config.DEFAULT_POOL_TIMEOUT)
-@click.option('--throttle',
-              help='Throttle between each translation (in ms)',
-              default=0)
+@click.option(
+    '-r',
+    '--interpreter',
+    help='Interpreter to use to perform the translation',
+    default=config.DEFAULT_INTERPRETER,
+    callback=validate_interpreter,
+)
+@click.option('-s', '--source-language', help='Source language to translate from', required=True, default=None)
+@click.option('-t', '--target-language', help='Target language to translate to', required=True, default=None)
+@click.option(
+    '--intermediary-language',
+    help='An intermediary language to use when no translation is available between the source and the target. If none is provided this will be calculated automatically.',
+)
+@click.option('--source-field', help='Document field to translate', default=config.DEFAULT_SOURCE_FIELD)
+@click.option(
+    '--target-field', help='Document field where the translations are stored', default=config.DEFAULT_TARGET_FIELD
+)
+@click.option('-q', '--query-string', help='Search query string to filter result')
+@click.option(
+    '-d',
+    '--data-dir',
+    help='Path to the directory where to language model will be downloaded',
+    type=click.Path(exists=True, dir_okay=True, writable=True, readable=True),
+    default=mkdtemp(),
+)
+@click.option(
+    '--scan-scroll',
+    help="Scroll duration (set to higher value if you're processing a lot of documents)",
+    default=config.DEFAULT_SCAN_SCROLL,
+)
+@click.option('--dry-run', help="Don't save anything in Elasticsearch", is_flag=True, default=False)
+@click.option('-f', '--force', help='Override existing translation in Elasticsearch', is_flag=True, default=False)
+@click.option('--pool-size', help='Number of parallel processes to start', default=config.DEFAULT_POOL_SIZE)
+@click.option('--pool-timeout', help='Timeout to add a translation', default=config.DEFAULT_POOL_TIMEOUT)
+@click.option('--throttle', help='Throttle between each translation (in ms)', default=0)
 @click.option('--syslog-address', help='Syslog address', default=config.DEFAULT_SYSLOG_ADDRESS)
 @click.option('--syslog-port', help='Syslog port', default=config.DEFAULT_SYSLOG_PORT)
 @click.option('--syslog-facility', help='Syslog facility', default=config.DEFAULT_SYSLOG_FACILITY)
-@click.option('--stdout-loglevel',
-              help='Change the default log level for stdout error handler',
-              default='ERROR',
-              callback=validate_loglevel)
-@click.option('--progressbar/--no-progressbar',
-              help='Display a progressbar',
-              default=None,
-              callback=validate_progressbar)
-@click.option('--plan',
-              help='Plan translations into a queue instead of processing them npw',
-              is_flag=True,
-              default=False)
-@click.option('--broker-url',
-              help='Celery broker URL (only needed when planning translation)',
-              default=config.BROKER_URL)
-@click.option('--max-content-length',
-              help="Max translated content length (<[0-9]+[KMG]?>) to avoid highlight errors"
-                   "(see http://github.com/ICIJ/datashare/issues/1184)",
-              default=config.DEFAULT_MAX_CONTENT_LENGTH,
-              callback=validate_max_content_length)
-@click.option('--device',
-              help='Device for Argos translation (cpu, cuda, or auto)',
-              type=click.Choice(['cpu', 'cuda', 'auto'], case_sensitive=False),
-              default=config.DEFAULT_DEVICE)
+@click.option(
+    '--stdout-loglevel',
+    help='Change the default log level for stdout error handler',
+    default='ERROR',
+    callback=validate_loglevel,
+)
+@click.option(
+    '--progressbar/--no-progressbar', help='Display a progressbar', default=None, callback=validate_progressbar
+)
+@click.option(
+    '--plan', help='Plan translations into a queue instead of processing them npw', is_flag=True, default=False
+)
+@click.option(
+    '--broker-url', help='Celery broker URL (only needed when planning translation)', default=config.BROKER_URL
+)
+@click.option(
+    '--max-content-length',
+    help='Max translated content length (<[0-9]+[KMG]?>) to avoid highlight errors'
+    '(see http://github.com/ICIJ/datashare/issues/1184)',
+    default=config.DEFAULT_MAX_CONTENT_LENGTH,
+    callback=validate_max_content_length,
+)
+@click.option(
+    '--device',
+    help='Device for Argos translation (cpu, cuda, or auto)',
+    type=click.Choice(['cpu', 'cuda', 'auto'], case_sensitive=False),
+    default=config.DEFAULT_DEVICE,
+)
 def translate(syslog_address: str, syslog_port: int, syslog_facility: str, **options: Any) -> None:
     """Translate documents in an Elasticsearch index.
 
@@ -215,14 +202,15 @@ def translate(syslog_address: str, syslog_port: int, syslog_facility: str, **opt
     es_translator.start()
 
 
-
 @click.command()
 @click.option('--broker-url', default=config.BROKER_URL, help='Celery broker URL')
 @click.option('--concurrency', default=config.DEFAULT_POOL_SIZE, help='Number of concurrent workers')
-@click.option('--stdout-loglevel',
-              help='Change the default log level for stdout error handler',
-              default='ERROR',
-              callback=validate_loglevel)
+@click.option(
+    '--stdout-loglevel',
+    help='Change the default log level for stdout error handler',
+    default='ERROR',
+    callback=validate_loglevel,
+)
 def tasks(broker_url: str, concurrency: int, stdout_loglevel: int) -> None:
     """Start a Celery worker for processing queued translations.
 
@@ -232,39 +220,30 @@ def tasks(broker_url: str, concurrency: int, stdout_loglevel: int) -> None:
         stdout_loglevel: Log level for stdout output.
     """
     celery_app.conf.broker_url = broker_url
-    argv = [
-        'worker',
-        '--concurrency',
-        concurrency,
-        '--loglevel',
-        stdout_loglevel]
+    argv = ['worker', '--concurrency', concurrency, '--loglevel', stdout_loglevel]
     celery_app.worker_main(argv)
 
 
 @click.command()
-@click.option('--data-dir',
-              help='Path to the directory where to language model will be downloaded',
-              type=click.Path(exists=True,
-                              dir_okay=True,
-                              writable=True,
-                              readable=True),
-              default=mkdtemp())
-@click.option('--local', help='List pairs available locally',
-              is_flag=True, default=False)
+@click.option(
+    '--data-dir',
+    help='Path to the directory where to language model will be downloaded',
+    type=click.Path(exists=True, dir_okay=True, writable=True, readable=True),
+    default=mkdtemp(),
+)
+@click.option('--local', help='List pairs available locally', is_flag=True, default=False)
 @click.option('--syslog-address', help='Syslog address', default=config.DEFAULT_SYSLOG_ADDRESS)
 @click.option('--syslog-port', help='Syslog port', default=config.DEFAULT_SYSLOG_PORT)
 @click.option('--syslog-facility', help='Syslog facility', default=config.DEFAULT_SYSLOG_FACILITY)
-@click.option('--stdout-loglevel',
-              help='Change the default log level for stdout error handler',
-              default='ERROR',
-              callback=validate_loglevel)
+@click.option(
+    '--stdout-loglevel',
+    help='Change the default log level for stdout error handler',
+    default='ERROR',
+    callback=validate_loglevel,
+)
 def pairs(
-        data_dir: str,
-        local: bool,
-        syslog_address: str,
-        syslog_port: int,
-        syslog_facility: str,
-        **options: Any) -> None:
+    data_dir: str, local: bool, syslog_address: str, syslog_port: int, syslog_facility: str, **options: Any
+) -> None:
     """List available Apertium language pairs.
 
     Args:
@@ -281,6 +260,31 @@ def pairs(
     # Only the data-dir is needed to construct the Apertium instance, then
     # we just need to print the pair
     Pairs(data_dir, local).print_pairs()
+
+
+@click.command()
+@click.option('--broker-url', default=config.BROKER_URL, help='Celery broker URL')
+@click.option('--refresh', default=2.0, help='Refresh interval in seconds', type=float)
+def monitor(
+    broker_url: str,
+    refresh: float,
+) -> None:
+    """Live monitoring for es-translator workers.
+
+    Displays an htop-like interface showing:
+    - Translation progress (tasks completed vs remaining)
+    - Queue status (pending/active/completed tasks)
+    - Worker status (connected workers, tasks per worker)
+    - Throughput graph (tasks per second over time)
+
+    Example:
+        es-translator-monitor --broker-url redis://localhost:6379
+    """
+    translation_monitor = TranslationMonitor(
+        broker_url=broker_url,
+        refresh_interval=refresh,
+    )
+    translation_monitor.run()
 
 
 if __name__ == '__main__':

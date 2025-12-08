@@ -21,11 +21,12 @@ class TranslatedHit:
     """
 
     def __init__(
-            self,
-            hit: ObjectBase,
-            source_field: str = 'content',
-            target_field: str = 'content_translated',
-            force: bool = False) -> None:
+        self,
+        hit: ObjectBase,
+        source_field: str = 'content',
+        target_field: str = 'content_translated',
+        force: bool = False,
+    ) -> None:
         """Initialize the TranslatedHit wrapper.
 
         Args:
@@ -102,16 +103,9 @@ class TranslatedHit:
         Args:
             client: Elasticsearch client instance.
         """
-        client.update(
-            index=self.index,
-            id=self.id,
-            routing=self.routing,
-            body=self.body)
+        client.update(index=self.index, id=self.id, routing=self.routing, body=self.body)
 
-    def add_translation(
-            self,
-            interpreter: AbstractInterpreter,
-            max_content_length: int = -1) -> None:
+    def add_translation(self, interpreter: AbstractInterpreter, max_content_length: int = -1) -> None:
         """Add a translation to the document.
 
         Translates the source content using the provided interpreter and
@@ -122,23 +116,19 @@ class TranslatedHit:
             max_content_length: Maximum length for translated content.
                 Use -1 for unlimited.
         """
-        if self.force or not self.is_translated(
-                interpreter.source_name,
-                interpreter.target_name,
-                interpreter.name):
+        if self.force or not self.is_translated(interpreter.source_name, interpreter.target_name, interpreter.name):
             content = interpreter.translate(self.source_value)
             truncated_content = content if max_content_length == -1 else content[:max_content_length]
-            self.hit[self.target_field].append({
-                'translator': interpreter.name,
-                'source_language': interpreter.source_name.upper(),
-                'target_language': interpreter.target_name.upper(),
-                'content': truncated_content})
+            self.hit[self.target_field].append(
+                {
+                    'translator': interpreter.name,
+                    'source_language': interpreter.source_name.upper(),
+                    'target_language': interpreter.target_name.upper(),
+                    'content': truncated_content,
+                }
+            )
 
-    def is_translated(
-            self,
-            source_language: str,
-            target_language: str,
-            translator: str) -> bool:
+    def is_translated(self, source_language: str, target_language: str, translator: str) -> bool:
         """Check if the document has already been translated.
 
         Args:
@@ -149,9 +139,12 @@ class TranslatedHit:
         Returns:
             True if a matching translation exists, False otherwise.
         """
+
         def same_languages(t: dict[str, str]) -> bool:
-            return (t['source_language'] == source_language.upper() and
-                    t['target_language'] == target_language.upper() and
-                    t['translator'] == translator)
+            return (
+                t['source_language'] == source_language.upper()
+                and t['target_language'] == target_language.upper()
+                and t['translator'] == translator
+            )
 
         return any(t for t in self.translations if same_languages(t))

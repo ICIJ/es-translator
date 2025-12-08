@@ -2,6 +2,7 @@
 
 This module defines the interface that all translation interpreters must implement.
 """
+
 from abc import ABC, abstractmethod
 from os.path import abspath
 from typing import Optional
@@ -26,11 +27,12 @@ class AbstractInterpreter(ABC):
     name: str = 'ABSTRACT'
 
     def __init__(
-            self,
-            source: Optional[str] = None,
-            target: Optional[str] = None,
-            intermediary: Optional[str] = None,
-            pack_dir: Optional[str] = None) -> None:
+        self,
+        source: Optional[str] = None,
+        target: Optional[str] = None,
+        intermediary: Optional[str] = None,
+        pack_dir: Optional[str] = None,
+    ) -> None:
         """Initialize the interpreter.
 
         Args:

@@ -17,7 +17,7 @@ from es_translator.alpha import to_alpha_2, to_alpha_3, to_alpha_3_pair
 from es_translator.logger import logger
 from es_translator.symlink import create_symlink
 
-REPOSITORY_URL = "https://apertium.projectjj.com/apt/nightly"
+REPOSITORY_URL = 'https://apertium.projectjj.com/apt/nightly'
 
 
 class PackageNotFoundError(Exception):
@@ -60,7 +60,7 @@ def get_packages_file_url(arch: Optional[str] = None) -> str:
             arch = 'amd64'
             logger.warning(f'Unknown architecture {machine}, defaulting to amd64')
 
-    return f"{REPOSITORY_URL}/dists/noble/main/binary-{arch}/Packages"
+    return f'{REPOSITORY_URL}/dists/noble/main/binary-{arch}/Packages'
 
 
 class ApertiumRepository:
@@ -117,6 +117,7 @@ class ApertiumRepository:
         Returns:
             List of package metadata dictionaries.
         """
+
         def isnt_empty(c: str) -> bool:
             return c is not None and c != ''
 
@@ -143,6 +144,7 @@ class ApertiumRepository:
         Returns:
             Package metadata dictionary if found, None otherwise.
         """
+
         def is_package(c: dict) -> bool:
             return c.get('Package') == package or c.get('Provides') == package
 
@@ -210,7 +212,7 @@ class ApertiumRepository:
 
         # Extract the pool directory path
         filename_parts = filename.split('/')
-        pool_dir_url = f"{REPOSITORY_URL}/{'/'.join(filename_parts[:-1])}/"
+        pool_dir_url = f'{REPOSITORY_URL}/{"/".join(filename_parts[:-1])}/'
 
         try:
             # Fetch the directory listing
@@ -259,7 +261,7 @@ class ApertiumRepository:
             logger.info(f'Downloading package {name}')
 
             # Try the URL from Packages file first
-            package_url = f"{REPOSITORY_URL}/{package['Filename']}"
+            package_url = f'{REPOSITORY_URL}/{package["Filename"]}'
             try:
                 request.urlretrieve(package_url, package_file)
             except (URLError, HTTPError, OSError) as e:

@@ -3,6 +3,7 @@
 This module provides functionality to list available Apertium language pairs,
 both locally installed and remotely available.
 """
+
 from .apertium import Apertium
 
 

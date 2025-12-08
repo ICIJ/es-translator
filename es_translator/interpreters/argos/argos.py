@@ -6,6 +6,7 @@ argostranslate library for neural machine translation between languages.
 Note: argostranslate imports are deferred to allow setting ARGOS_DEVICE_TYPE
 environment variable before the library reads its configuration.
 """
+
 import os
 import tempfile
 from pathlib import Path
@@ -31,6 +32,7 @@ def _configure_device(device: str) -> str:
     if device == 'auto':
         try:
             import torch
+
             actual_device = 'cuda' if torch.cuda.is_available() else 'cpu'
         except ImportError:
             actual_device = 'cpu'
@@ -47,18 +49,21 @@ def _configure_device(device: str) -> str:
 def _get_argos_package():
     """Lazy import of argostranslate.package."""
     from argostranslate import package
+
     return package
 
 
 def _get_argos_translate():
     """Lazy import of argostranslate.translate."""
     from argostranslate import translate
+
     return translate
 
 
 def _get_argos_settings():
     """Lazy import of argostranslate.settings."""
     from argostranslate import settings
+
     return settings
 
 
@@ -80,15 +85,17 @@ class Argos(AbstractInterpreter):
     Attributes:
         name: Identifier for this interpreter ('ARGOS').
     """
+
     name = 'ARGOS'
 
     def __init__(
-            self,
-            source: Optional[str] = None,
-            target: Optional[str] = None,
-            intermediary: Optional[str] = None,
-            pack_dir: Optional[str] = None,
-            device: Optional[str] = None) -> None:
+        self,
+        source: Optional[str] = None,
+        target: Optional[str] = None,
+        intermediary: Optional[str] = None,
+        pack_dir: Optional[str] = None,
+        device: Optional[str] = None,
+    ) -> None:
         """Initialize the Argos interpreter.
 
         Args:
@@ -107,11 +114,9 @@ class Argos(AbstractInterpreter):
         self._device_configured = False
         # Raise an exception if an intermediary language is provided
         if intermediary is not None:
-            logger.warning(
-                'Argos interpreter does not support intermediary language')
+            logger.warning('Argos interpreter does not support intermediary language')
         if pack_dir is not None:
-            logger.warning(
-                'Argos interpreter does not support custom pack directory')
+            logger.warning('Argos interpreter does not support custom pack directory')
         # Check pair availability - this will trigger argostranslate import
         # so we configure device first
         self._ensure_device_configured()
@@ -222,7 +227,8 @@ class Argos(AbstractInterpreter):
                 return argospackage.install_from_path(download_path)
         except Timeout as exc:
             raise ArgosPackageDownloadLockTimeout(
-                f'Another instance of the program is downloading the package {package}. Please try again later.') from exc
+                f'Another instance of the program is downloading the package {package}. Please try again later.'
+            ) from exc
 
     def download_necessary_languages(self) -> None:
         """Download necessary language packages if not installed.
@@ -252,14 +258,8 @@ class Argos(AbstractInterpreter):
         """
         argostranslate = _get_argos_translate()
         installed_languages = argostranslate.get_installed_languages()
-        source = list(
-            filter(
-                lambda x: x.code == self.source_alpha_2,
-                installed_languages))[0]
-        target = list(
-            filter(
-                lambda x: x.code == self.target_alpha_2,
-                installed_languages))[0]
+        source = list(filter(lambda x: x.code == self.source_alpha_2, installed_languages))[0]
+        target = list(filter(lambda x: x.code == self.target_alpha_2, installed_languages))[0]
         return source.get_translation(target)
 
     def translate(self, text_input: str) -> str:

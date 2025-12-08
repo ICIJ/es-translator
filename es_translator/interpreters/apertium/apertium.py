@@ -4,6 +4,7 @@ This module provides the Apertium interpreter class that interfaces with the
 Apertium translation engine to perform language translations, including support
 for intermediary language pairs when direct translation is unavailable.
 """
+
 from functools import lru_cache
 from tempfile import NamedTemporaryFile
 from typing import Optional
@@ -23,9 +24,9 @@ class ApertiumNotInstalledError(Exception):
 
     def __init__(self) -> None:
         super().__init__(
-            "Apertium is not installed. Please install it first:\n"
-            "  wget https://apertium.projectjj.com/apt/install-nightly.sh -O - | sudo bash\n"
-            "  sudo apt install apertium-all-dev"
+            'Apertium is not installed. Please install it first:\n'
+            '  wget https://apertium.projectjj.com/apt/install-nightly.sh -O - | sudo bash\n'
+            '  sudo apt install apertium-all-dev'
         )
 
 
@@ -33,6 +34,7 @@ def _get_apertium():
     """Lazily get the apertium command, raising a helpful error if not installed."""
     try:
         from sh import apertium
+
         return apertium
     except (CommandNotFound, ImportError):
         raise ApertiumNotInstalledError()
@@ -48,14 +50,16 @@ class Apertium(AbstractInterpreter):
         name: Identifier for this interpreter ('APERTIUM').
         repository: ApertiumRepository instance for package management.
     """
+
     name = 'APERTIUM'
 
     def __init__(
-            self,
-            source: Optional[str] = None,
-            target: Optional[str] = None,
-            intermediary: Optional[str] = None,
-            pack_dir: Optional[str] = None) -> None:
+        self,
+        source: Optional[str] = None,
+        target: Optional[str] = None,
+        intermediary: Optional[str] = None,
+        pack_dir: Optional[str] = None,
+    ) -> None:
         """Initialize the Apertium interpreter.
 
         Args:
@@ -106,9 +110,7 @@ class Apertium(AbstractInterpreter):
             List of language pair codes to process sequentially.
         """
         if self.intermediary:
-            return [
-                self.intermediary_source_pair,
-                self.intermediary_target_pair]
+            return [self.intermediary_source_pair, self.intermediary_target_pair]
         else:
             return [self.pair_alpha_3]
 
@@ -165,8 +167,7 @@ class Apertium(AbstractInterpreter):
             packages_tree = self.lang_tree(self.source, trunk_packages)
             # Find the first path between self.source (the root) and
             # self.target in the given tree
-            self.intermediary = self.first_pairs_path(
-                packages_tree, self.target)[0]
+            self.intermediary = self.first_pairs_path(packages_tree, self.target)[0]
         # We build the two intermediary pairs
         return [self.intermediary_source_pair, self.intermediary_target_pair]
 
@@ -276,8 +277,7 @@ class Apertium(AbstractInterpreter):
         for pair in pairs:
             if lang in pair and depth > 0:
                 child_lang = next(item for item in pair if item != lang)
-                tree["children"][child_lang] = self.lang_tree(
-                    child_lang, pairs, depth - 1)
+                tree['children'][child_lang] = self.lang_tree(child_lang, pairs, depth - 1)
         return tree
 
     def first_pairs_path(self, leaf: dict, lang: str) -> list[str]:
@@ -309,10 +309,7 @@ class Apertium(AbstractInterpreter):
             True if the language is found in the leaf or its descendants.
         """
         children = leaf['children'].values()
-        return lang in leaf['children'] or any(
-            self.leaf_has_lang(
-                child_leaf,
-                lang) for child_leaf in children)
+        return lang in leaf['children'] or any(self.leaf_has_lang(child_leaf, lang) for child_leaf in children)
 
     def translate(self, input: str) -> str:
         """Translate text through the translation pipeline.
@@ -349,8 +346,7 @@ class Apertium(AbstractInterpreter):
             with NamedTemporaryFile(mode='w+t') as temp_input_file:
                 temp_input_file.writelines(input)
                 temp_input_file.seek(0)
-                input_translated = apertium(
-                    '-ud', self.pack_dir, pair, temp_input_file.name)
+                input_translated = apertium('-ud', self.pack_dir, pair, temp_input_file.name)
         except ErrorReturnCode:
             raise Exception('Unable to translate this string.')
         return str(input_translated)
