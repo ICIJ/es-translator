@@ -14,6 +14,7 @@ from typing import Optional
 
 import plotext as plt
 from celery import Celery
+from rich import box
 from rich.console import Console, ConsoleOptions, RenderResult
 from rich.layout import Layout
 from rich.live import Live
@@ -294,7 +295,7 @@ class TranslationMonitor:
         if not self.stats.workers:
             return Panel(Text('No workers connected', style='yellow'), title='Workers', border_style='magenta')
 
-        table = Table(show_header=True, header_style='bold')
+        table = Table(show_header=True, box=box.SIMPLE_HEAD, padding=(0, 0), pad_edge=False, expand=True)
         table.add_column('Worker', style='cyan')
         table.add_column('Active', justify='center')
         table.add_column('Reserved', justify='center')
