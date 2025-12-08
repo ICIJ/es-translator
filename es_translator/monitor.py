@@ -37,29 +37,6 @@ class ThroughputChart:
         height = options.height or 10
         height = max(height - 3, 4)  # Account for header line and padding, minimum 4
 
-        # Calculate chart data points and position data on the right
-        chart_data_points = width * 2  # Approximate data points that fit in width
-        data_len = len(self.history)
-
-        # Use x coordinates to position data on the right side of the chart
-        x_start = max(0, chart_data_points - data_len)
-        x_coords = list(range(x_start, x_start + data_len))
-
-        # Create minimalist plotext chart
-        plt.clear_figure()
-        plt.theme('clear')
-        plt.plot(x_coords, self.history, marker='braille')
-        plt.plotsize(width, height)
-        plt.frame(False)
-        plt.xticks([])
-        plt.yticks([])
-        plt.xlim(0, chart_data_points)
-        plt.ylim(0, None)  # Force 0-based Y axis
-
-        # Get the plot as string and strip ANSI codes
-        chart_str = plt.build()
-        chart_str = re.sub(r'\x1b\[[0-9;]*m', '', chart_str)
-
         # Build content with stats header
         header = Text()
         header.append(f'{self.current:.2f}', style='bold green')
@@ -71,9 +48,23 @@ class ThroughputChart:
 
         yield header
 
+        # Create minimalist plotext chart - let plotext auto-scale to fill width
+        plt.clear_figure()
+        plt.theme('clear')
+        plt.plot(self.history, marker='braille')
+        plt.plotsize(width, height)
+        plt.frame(False)
+        plt.xticks([])
+        plt.yticks([])
+        max_val = self.peak if self.peak > 0 else 1
+        plt.ylim(0, max_val)
+
+        # Get the plot as string and strip ANSI codes
+        chart_str = plt.build()
+        chart_str = re.sub(r'\x1b\[[0-9;]*m', '', chart_str)
+
         # Add right axis with scale
         chart_lines = chart_str.rstrip('\n').split('\n')
-        max_val = self.peak if self.peak > 0 else 1
 
         for i, line in enumerate(chart_lines):
             row = Text(line)
@@ -105,7 +96,7 @@ class MonitorStats:
     worker_last_processed: dict = field(default_factory=dict)  # For per-worker throughput
 
     # Throughput tracking (tasks per interval)
-    throughput_history: deque = field(default_factory=lambda: deque(maxlen=60))
+    throughput_history: deque = field(default_factory=lambda: deque(maxlen=300))
     peak_throughput: float = 0.0  # Session peak (not just history window)
     last_completed_count: int = 0
     last_check_time: float = field(default_factory=time.time)
@@ -124,20 +115,30 @@ class TranslationMonitor:
         self,
         broker_url: str,
         refresh_interval: float = 2.0,
+        history_duration: float = 600.0,
     ):
         """Initialize the monitor.
 
         Args:
             broker_url: Celery broker URL (Redis).
             refresh_interval: How often to refresh stats (seconds).
+            history_duration: Duration of throughput history in seconds (default: 600 = 10 min).
         """
         self.broker_url = broker_url
         self.refresh_interval = refresh_interval
+        self.history_duration = history_duration
+
+        # Calculate number of data points based on duration and refresh interval
+        self.history_size = int(history_duration / refresh_interval)
 
         self.celery_app = Celery('EsTranslator', broker=broker_url)
         self.celery_app.conf.task_default_queue = 'es_translator:default'
         self.console = Console()
-        self.stats = MonitorStats()
+
+        # Initialize stats with properly sized history pre-filled with zeros
+        self.stats = MonitorStats(
+            throughput_history=deque([0.0] * self.history_size, maxlen=self.history_size)
+        )
 
     def get_celery_stats(self) -> None:
         """Fetch queue and worker stats from Celery/Redis."""

@@ -265,9 +265,11 @@ def pairs(
 @click.command()
 @click.option('--broker-url', default=config.BROKER_URL, help='Celery broker URL')
 @click.option('--refresh', default=2.0, help='Refresh interval in seconds', type=float)
+@click.option('--history', default=600.0, help='Throughput history duration in seconds (default: 600 = 10 min)', type=float)
 def monitor(
     broker_url: str,
     refresh: float,
+    history: float,
 ) -> None:
     """Live monitoring for es-translator workers.
 
@@ -283,6 +285,7 @@ def monitor(
     translation_monitor = TranslationMonitor(
         broker_url=broker_url,
         refresh_interval=refresh,
+        history_duration=history,
     )
     translation_monitor.run()
 
