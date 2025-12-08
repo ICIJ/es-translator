@@ -238,18 +238,33 @@ class TranslationMonitor:
         remaining = self.stats.pending_tasks + self.stats.active_tasks
         pct = (completed / total) * 100 if total > 0 else 0
 
+        # Calculate throughput stats for ETA
+        history = list(self.stats.throughput_history)
+        avg_throughput = sum(history) / len(history) if history else 0
+
         # Calculate ETA
-        if self.stats.throughput_history:
-            avg_throughput = sum(self.stats.throughput_history) / len(self.stats.throughput_history)
-            if avg_throughput > 0:
-                eta_seconds = remaining / avg_throughput
-                eta_hours, eta_remainder = divmod(int(eta_seconds), 3600)
-                eta_minutes, eta_secs = divmod(eta_remainder, 60)
-                eta_str = f'{eta_hours:02d}:{eta_minutes:02d}:{eta_secs:02d}'
-            else:
-                eta_str = '--:--:--'
+        if avg_throughput > 0:
+            eta_seconds = remaining / avg_throughput
+            eta_hours, eta_remainder = divmod(int(eta_seconds), 3600)
+            eta_minutes, eta_secs = divmod(eta_remainder, 60)
+            eta_str = f'{eta_hours:02d}:{eta_minutes:02d}:{eta_secs:02d}'
         else:
-            eta_str = 'calculating'
+            eta_str = '--:--:--'
+
+        # Calculate elapsed time
+        elapsed = time.time() - self.stats.start_time
+        elapsed_hours, elapsed_remainder = divmod(int(elapsed), 3600)
+        elapsed_minutes, elapsed_secs = divmod(elapsed_remainder, 60)
+        elapsed_str = f'{elapsed_hours:02d}:{elapsed_minutes:02d}:{elapsed_secs:02d}'
+
+        # Calculate total processed across all workers
+        total_processed = sum(w.get('processed', 0) for w in self.stats.workers.values())
+
+        # Calculate total prefetch count
+        total_prefetch = sum(w.get('prefetch_count', 0) for w in self.stats.workers.values())
+
+        # Calculate tasks per hour
+        tasks_per_hour = avg_throughput * 3600 if avg_throughput > 0 else 0
 
         table = Table(show_header=False, box=None, padding=(0, 0), expand=True)
         table.add_column('Metric', style='bold')
@@ -259,12 +274,21 @@ class TranslationMonitor:
         table.add_row('Progress', f'[green]{pct:.1f}%[/green]')
         table.add_row('Completed', f'[cyan]{completed:,}[/cyan] / {total:,}')
         table.add_row('Remaining', f'[yellow]{remaining:,}[/yellow]')
-        table.add_row('ETA', f'[dim]{eta_str}[/dim]')
+        if self.stats.failed_tasks > 0:
+            table.add_row('Failed', f'[red]{self.stats.failed_tasks:,}[/red]')
         table.add_row('', '')  # Spacer
         # Queue info
         table.add_row('Pending', f'[yellow]{self.stats.pending_tasks:,}[/yellow]')
         table.add_row('Active', f'[green]{self.stats.active_tasks:,}[/green]')
         table.add_row('Workers', f'[magenta]{len(self.stats.workers):,}[/magenta]')
+        if total_prefetch > 0:
+            table.add_row('Prefetch', f'[dim]{total_prefetch:,}[/dim]')
+        table.add_row('', '')  # Spacer
+        # Session stats
+        table.add_row('Processed', f'[cyan]{total_processed:,}[/cyan]')
+        table.add_row('Rate', f'[dim]{tasks_per_hour:,.0f}/h[/dim]')
+        table.add_row('Elapsed', f'[dim]{elapsed_str}[/dim]')
+        table.add_row('ETA', f'[dim]{eta_str}[/dim]')
 
         return Panel(table, title='Status', border_style='green')
 
