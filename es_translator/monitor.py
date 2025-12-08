@@ -68,15 +68,16 @@ class ThroughputChart:
 
         for i, line in enumerate(chart_lines):
             row = Text(line)
-            # Add axis labels: top, middle, bottom
+            # Add axis labels: top, middle, bottom (very muted)
+            axis_style = 'bright_black'
             if i == 0:
-                row.append(f'│{max_val:>5.1f}', style='dim')
+                row.append(f'│{max_val:>5.1f}', style=axis_style)
             elif i == len(chart_lines) // 2:
-                row.append(f'│{max_val / 2:>5.1f}', style='dim')
+                row.append(f'│{max_val / 2:>5.1f}', style=axis_style)
             elif i == len(chart_lines) - 1:
-                row.append('│  0.0', style='dim')
+                row.append('│  0.0', style=axis_style)
             else:
-                row.append('│', style='dim')
+                row.append('│', style=axis_style)
             yield row
 
 
