@@ -110,7 +110,7 @@ docker-run:
 	@docker run -it $(DOCKER_NAME)
 
 serve-doc:
-	@poetry run mkdocs serve
+	@poetry run zensical serve --dev-addr 0.0.0.0:4000
 
 publish-doc:
-	@poetry run mkdocs gh-deploy
+	@echo "Docs are published by CI on release. See docs/releasing.md or run: make bump-patch"

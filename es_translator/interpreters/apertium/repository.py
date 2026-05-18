@@ -6,7 +6,6 @@ from fileinput import FileInput
 from functools import lru_cache
 from glob import glob
 from os.path import abspath, basename, dirname, isfile, join
-from typing import Optional
 from urllib import request
 from urllib.error import HTTPError, URLError
 
@@ -36,7 +35,7 @@ class PairPackageNotFoundError(Exception):
         self.pair = pair
 
 
-def get_packages_file_url(arch: Optional[str] = None) -> str:
+def get_packages_file_url(arch: str | None = None) -> str:
     """Get the Packages file URL for the appropriate architecture.
 
     Args:
@@ -74,7 +73,7 @@ class ApertiumRepository:
         arch: System architecture ('amd64', 'i386', etc.).
     """
 
-    def __init__(self, cache_dir: Optional[str] = None, arch: Optional[str] = None):
+    def __init__(self, cache_dir: str | None = None, arch: str | None = None):
         """Initialize the Apertium repository handler.
 
         Args:
@@ -135,7 +134,7 @@ class ApertiumRepository:
         """
         return list(filter(self.is_apertium_pair, self.packages))
 
-    def find_package(self, package: str) -> Optional[dict]:
+    def find_package(self, package: str) -> dict | None:
         """Find a package by name or provided name.
 
         Args:
@@ -154,7 +153,7 @@ class ApertiumRepository:
             logger.warning(f'Unable to find package {package}')
             return None
 
-    def find_pair_package(self, pair: str) -> Optional[dict]:
+    def find_pair_package(self, pair: str) -> dict | None:
         """Find a translation pair package.
 
         Searches for both forward (source-target) and reverse (target-source) pairs.

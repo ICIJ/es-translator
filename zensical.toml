@@ -1,0 +1,122 @@
+# ============================================================================
+# Zensical configuration for es-translator documentation
+# Docs: https://zensical.org/docs/
+# ============================================================================
+
+[project]
+site_name = "EsTranslator"
+site_description = "A lazy yet bulletproof machine translation tool for Elasticsearch."
+site_url = "https://icij.github.io/es-translator/"
+repo_name = "icij/es-translator"
+repo_url = "https://github.com/icij/es-translator"
+copyright = "Copyright &copy; International Consortium of Investigative Journalists"
+extra_css = ["stylesheets/extra.css"]
+
+nav = [
+  { "Getting Started" = "index.md" },
+  { "Usage" = "usage.md" },
+  { "Configuration" = "configuration.md" },
+  { "Datashare" = "datashare.md" },
+  { "Troubleshooting" = "troubleshooting.md" },
+  { "Architecture" = "architecture.md" },
+  { "API Reference" = "api.md" },
+  { "Contributing" = "contributing.md" },
+  { "Releasing" = "releasing.md" },
+]
+
+# ----------------------------------------------------------------------------
+# Theme
+# ----------------------------------------------------------------------------
+
+[project.theme]
+variant = "classic"
+font.text = "Poppins"
+font.code = "Noto Sans Mono"
+
+features = [
+  "announce.dismiss",
+  "navigation.sections",
+  "navigation.indexes",
+  "navigation.top",
+  "navigation.footer",
+  "toc.follow",
+  "search.suggest",
+  "search.highlight",
+  "search.share",
+  "content.code.copy",
+  "content.code.annotate",
+  "content.tabs.link",
+]
+
+[project.theme.icon]
+logo = "material/translate-variant"
+
+[[project.theme.palette]]
+scheme = "slate"
+primary = "black"
+accent = "red"
+
+# ----------------------------------------------------------------------------
+# Extras
+# ----------------------------------------------------------------------------
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/ICIJ/es-translator"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/python"
+link = "https://pypi.org/project/es-translator/"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/twitter"
+link = "https://twitter.com/ICIJorg"
+
+# ----------------------------------------------------------------------------
+# Plugins (kept in MkDocs format — Zensical's compat shim consumes them)
+# ----------------------------------------------------------------------------
+
+[project.plugins.search]
+
+[project.plugins.mkdocstrings.config]
+
+[project.plugins.mkdocstrings.config.handlers.python]
+paths = ["."]
+
+[project.plugins.mkdocstrings.config.handlers.python.options]
+separate_signature = true
+filters = ["!^_"]
+merge_init_into_class = true
+
+[project.plugins.mkdocstrings.config.handlers.python.options.docstring_options]
+ignore_init_summary = true
+
+# ----------------------------------------------------------------------------
+# Markdown extensions
+# ----------------------------------------------------------------------------
+
+[project.markdown_extensions.tables]
+[project.markdown_extensions.admonition]
+
+[project.markdown_extensions.toc]
+permalink = true
+title = "Page contents"
+
+[project.markdown_extensions.codehilite]
+guess_lang = false
+
+[project.markdown_extensions.pymdownx.details]
+[project.markdown_extensions.pymdownx.highlight]
+[project.markdown_extensions.pymdownx.extra]
+
+[project.markdown_extensions.pymdownx.superfences]
+custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
+]
+
+[project.markdown_extensions.pymdownx.emoji]
+emoji_index = "zensical.extensions.emoji.twemoji"
+emoji_generator = "zensical.extensions.emoji.to_svg"
+
+[project.markdown_extensions.pymdownx.tabbed]
+alternate_style = true

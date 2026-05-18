@@ -134,11 +134,13 @@ pyyaml = "*"
 argh = "*"
 pytest = "^7.2"
 pytest-mock = "^3.11.1"
-mkdocstrings-python = "^1.12"
-mkdocstrings = "^0.27"
+mkdocstrings-python = "^2.0"
+mkdocstrings = "^1.0"
 zensical = "^0.0.42"
 ruff = "^0.14.6"
 ```
+
+> **Note (justified deviation):** The versions above were bumped from `mkdocstrings-python = "^1.12"` / `mkdocstrings = "^0.27"` originally specified here. Zensical's compat shim requires top-level imports only available in `mkdocstrings >= 1.0` (which in turn requires `mkdocstrings-python >= 2.0`). The newer versions resolve cleanly with `zensical = "^0.0.42"` and are used in the actual `pyproject.toml`.
 
 Removed: `mkdocs`, `mkdocs-material`, `mkdocs-exclude`, `mkdocs-minify-plugin`, `mkdocs-autolinks-plugin`, `cairosvg`. Kept: `mkdocstrings`, `mkdocstrings-python` (consumed directly by `zensical.compat.mkdocstrings`).
 

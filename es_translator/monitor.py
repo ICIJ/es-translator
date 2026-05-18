@@ -10,7 +10,6 @@ import time
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
 
 import plotext as plt
 from celery import Celery
@@ -98,7 +97,7 @@ class MonitorStats:
     start_time: float = field(default_factory=time.time)
 
     # Initial task count (captured at start to calculate total)
-    initial_pending: Optional[int] = None
+    initial_pending: int | None = None
 
 
 class TranslationMonitor:

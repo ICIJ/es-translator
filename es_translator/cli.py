@@ -7,7 +7,7 @@ managing translation workers, and listing available language pairs.
 import logging
 import re
 from tempfile import mkdtemp
-from typing import Any, Optional
+from typing import Any
 
 import click
 
@@ -41,7 +41,7 @@ def validate_loglevel(ctx: click.Context, param: click.Parameter, value: Any) ->
         raise click.BadParameter('must be a valid log level (CRITICAL, ERROR, WARNING, INFO, DEBUG or NOTSET)')
 
 
-def validate_progressbar(ctx: click.Context, param: click.Parameter, value: Optional[bool]) -> bool:
+def validate_progressbar(ctx: click.Context, param: click.Parameter, value: bool | None) -> bool:
     """Validate progressbar option.
 
     If no value given, activate progress bar only when stdout_loglevel > INFO (20).
