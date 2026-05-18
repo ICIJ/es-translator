@@ -11,6 +11,7 @@ repo_name = "icij/es-translator"
 repo_url = "https://github.com/icij/es-translator"
 copyright = "Copyright &copy; International Consortium of Investigative Journalists"
 extra_css = ["stylesheets/extra.css"]
+exclude_docs = "superpowers/"
 
 nav = [
   { "Getting Started" = "index.md" },
@@ -35,32 +36,28 @@ font.code = "Noto Sans Mono"
 
 features = [
   "announce.dismiss",
-  "content.code.copy",
-  "content.tabs.link",
-  "navigation.footer",
+  "navigation.tabs",
+  "navigation.tabs.sticky",
+  "navigation.sections",
+  "navigation.indexes",
   "navigation.top",
+  "navigation.footer",
+  "toc.follow",
+  "search.suggest",
   "search.highlight",
   "search.share",
-  "search.suggest",
-  "toc.follow",
+  "content.code.copy",
+  "content.code.annotate",
+  "content.tabs.link",
 ]
 
 [project.theme.icon]
 logo = "material/translate-variant"
 
-# Light scheme — ICIJ palette overrides live in docs/stylesheets/extra.css
 [[project.theme.palette]]
-media = "(prefers-color-scheme: light)"
-scheme = "default"
-toggle.icon = "lucide/moon"
-toggle.name = "Switch to dark theme"
-
-# Dark scheme
-[[project.theme.palette]]
-media = "(prefers-color-scheme: dark)"
 scheme = "slate"
-toggle.icon = "lucide/sun"
-toggle.name = "Switch to light theme"
+primary = "black"
+accent = "red"
 
 # ----------------------------------------------------------------------------
 # Extras
