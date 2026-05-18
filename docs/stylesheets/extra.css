@@ -45,9 +45,6 @@
 
 [data-md-color-scheme="slate"] {
   color-scheme: dark;
-}
-
-body[data-md-color-scheme="slate"] {
   background-color: #1c1c1c;
 }
 
