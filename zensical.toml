@@ -35,8 +35,6 @@ font.code = "Noto Sans Mono"
 
 features = [
   "announce.dismiss",
-  "navigation.tabs",
-  "navigation.tabs.sticky",
   "navigation.sections",
   "navigation.indexes",
   "navigation.top",
