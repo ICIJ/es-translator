@@ -129,9 +129,7 @@ class TranslationMonitor:
         self.console = Console()
 
         # Initialize stats with properly sized history pre-filled with zeros
-        self.stats = MonitorStats(
-            throughput_history=deque([0.0] * self.history_size, maxlen=self.history_size)
-        )
+        self.stats = MonitorStats(throughput_history=deque([0.0] * self.history_size, maxlen=self.history_size))
 
     def get_celery_stats(self) -> None:
         """Fetch queue and worker stats from Celery/Redis."""

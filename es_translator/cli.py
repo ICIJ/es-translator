@@ -265,7 +265,9 @@ def pairs(
 @click.command()
 @click.option('--broker-url', default=config.BROKER_URL, help='Celery broker URL')
 @click.option('--refresh', default=2.0, help='Refresh interval in seconds', type=float)
-@click.option('--history', default=60.0, help='Throughput history duration in seconds (default: 60 = 1 min)', type=float)
+@click.option(
+    '--history', default=60.0, help='Throughput history duration in seconds (default: 60 = 1 min)', type=float
+)
 def monitor(
     broker_url: str,
     refresh: float,
