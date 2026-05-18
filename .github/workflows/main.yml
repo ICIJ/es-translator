@@ -141,3 +141,48 @@ jobs:
           tags: |
             icij/es-translator:${{ github.event.release.tag_name }}
             icij/es-translator:latest
+
+  publish-docs:
+    needs: [container-test-job]
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Cairo (required by mkdocs-material social plugin)
+        run: sudo apt-get update -qq && sudo apt-get install -y libcairo2
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1.4.1
+        with:
+          version: 1.8.0
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Build docs
+        run: poetry run mkdocs build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
