@@ -18,6 +18,7 @@ A release is produced in three steps:
     - The full test matrix (`container-test-job`)
     - `publish-pypi` — builds the package with Poetry and uploads it to PyPI via OIDC (no token needed)
     - `publish-docker` — builds `icij/es-translator:<tag>` and `icij/es-translator:latest` and pushes them to Docker Hub
+    - `publish-docs` — builds the MkDocs site and deploys it to GitHub Pages
 
 If any of those steps fail, the release is not published. You can re-run the failed job from the GitHub Actions UI once the cause is fixed.
 
@@ -44,6 +45,15 @@ Add two repository secrets in **Settings → Secrets and variables → Actions**
 
 - `DOCKERHUB_USERNAME` — a Docker Hub account with write access to `icij/es-translator`
 - `DOCKERHUB_TOKEN` — a Docker Hub [access token](https://hub.docker.com/settings/security) scoped to `icij/es-translator` with **Read, Write, Delete** permissions
+
+### GitHub Pages
+
+The docs site is deployed via GitHub Actions (no `gh-pages` branch). One-time config:
+
+1. Go to **Settings → Pages**
+2. Under **Build and deployment**, set **Source** to **GitHub Actions**
+
+The `publish-docs` job uploads the built site as a Pages artifact (`actions/upload-pages-artifact`) and deploys it with `actions/deploy-pages` using OIDC, so no token needs to be stored.
 
 ## Release process
 
@@ -107,13 +117,7 @@ As soon as the release is published, the workflow runs. Watch it at:
 gh run watch
 ```
 
-### 5. Update the documentation
-
-The docs site is not part of the release workflow yet. Deploy it manually when the release is out:
-
-```bash
-make publish-doc
-```
+The PyPI package, Docker image, and docs site are all updated automatically when the workflow finishes.
 
 ## Version numbering
 
@@ -136,7 +140,7 @@ es-translator follows [Semantic Versioning](https://semver.org/):
 | `make distribute`               | Build and publish to PyPI (manual fallback)  |
 | `make docker-setup-multiarch`   | Configure buildx for multi-arch builds       |
 | `make docker-publish`           | Build and push Docker image (manual fallback)|
-| `make publish-doc`              | Deploy docs to GitHub Pages                  |
+| `make publish-doc`              | Deploy docs to GitHub Pages (manual fallback, uses `gh-pages` branch) |
 
 ## Manual fallback
 
@@ -161,6 +165,14 @@ make docker-publish
 ```
 
 `make docker-publish` reads the current version from `poetry version -s` and pushes both `icij/es-translator:<version>` and `icij/es-translator:latest`.
+
+### Publish the docs manually
+
+```bash
+make publish-doc
+```
+
+This runs `mkdocs gh-deploy`, which builds the site and force-pushes it to the `gh-pages` branch. Note that this is the **old** delivery path — if Pages is configured to deploy via Actions, pushing to `gh-pages` will not update the live site. Switch Pages back to "Deploy from a branch" temporarily if you need to use this fallback.
 
 ## Troubleshooting
 
