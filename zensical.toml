@@ -33,9 +33,6 @@ variant = "classic"
 font.text = "Poppins"
 font.code = "Noto Sans Mono"
 
-[project.theme.icon]
-logo = "material/translate-variant"
-
 features = [
   "announce.dismiss",
   "content.code.copy",
@@ -47,6 +44,9 @@ features = [
   "search.suggest",
   "toc.follow",
 ]
+
+[project.theme.icon]
+logo = "material/translate-variant"
 
 # Light scheme — ICIJ palette overrides live in docs/stylesheets/extra.css
 [[project.theme.palette]]
