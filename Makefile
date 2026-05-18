@@ -64,7 +64,7 @@ distribute:
 
 _bump:
 	@NEW_VERSION=$$(poetry version -s); \
-	git commit -m "build: bump to $$NEW_VERSION" pyproject.toml; \
+	git commit -m "build: bump to $$NEW_VERSION [skip ci]" pyproject.toml; \
 	git tag -a $$NEW_VERSION -m "Release $$NEW_VERSION"
 
 _bump-success:
