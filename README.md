@@ -4,10 +4,10 @@ A lazy yet bulletproof machine translation tool for Elasticsearch.
 
 ## Installation
 
-### pip
+### pipx
 
 ```bash
-pip install es-translator
+pipx install es-translator
 ```
 
 ### Docker
