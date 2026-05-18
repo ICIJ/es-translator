@@ -14,8 +14,6 @@
   --md-accent-fg-color: #d62828;
   --md-accent-fg-color--transparent: rgba(214, 40, 40, 0.10);
 
-  --md-typeset-a-color: #f00;
-
   --md-code-bg-color: #15171c;
   --md-code-fg-color: #e6e6e6;
 
@@ -24,6 +22,12 @@
   --md-mermaid-edge-color: #9a9a9a;
   --md-mermaid-label-bg-color: #0f1115;
   --md-mermaid-label-fg-color: #e6e6e6;
+}
+
+/* Override Zensical's slate+black-primary preset — its compound selector
+   (specificity 0,2,0) defeats a single-attribute override. */
+[data-md-color-scheme="slate"][data-md-color-primary="black"] {
+  --md-typeset-a-color: #f00;
 }
 
 /* Lift fenced code blocks off the page background without a border. */
