@@ -10,11 +10,10 @@ icon: material/database
 
 Datashare stores extracted document content in Elasticsearch. es-translator can translate this content, making documents searchable in multiple languages.
 
-```
-┌─────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  Datashare  │────▶│  Elasticsearch  │◀────│  es-translator  │
-│  (extract)  │     │    (storage)    │     │   (translate)   │
-└─────────────┘     └─────────────────┘     └─────────────────┘
+```mermaid
+flowchart LR
+    DS["Datashare<br/>(extract)"] --> ES[("Elasticsearch<br/>(storage)")]
+    EST["es-translator<br/>(translate)"] --> ES
 ```
 
 ## Document Structure

@@ -10,20 +10,16 @@ This page explains es-translator's architecture and how its components work toge
 
 es-translator is a Python application that reads documents from Elasticsearch, translates them using a pluggable interpreter system, and writes the translations back.
 
-```
-┌────────────────────────────────────────────────────────────────────┐
-│                           es-translator                            │
-│  ┌───────────────┐    ┌──────────────────┐    ┌─────────────────┐  │
-│  │  EsTranslator │───▶│    Interpreter   │───▶│  TranslatedHit  │  │
-│  │     (core)    │    │ (Argos/Apertium) │    │    (result)     │  │
-│  └───────────────┘    └──────────────────┘    └─────────────────┘  │
-└────────────────────────────────────────────────────────────────────┘
-         │                                          │
-         ▼                                          ▼
-┌─────────────────┐                      ┌─────────────────┐
-│  Elasticsearch  │◀─────────────────────│  Elasticsearch  │
-│    (read)       │                      │    (write)      │
-└─────────────────┘                      └─────────────────┘
+```mermaid
+flowchart LR
+    subgraph EsT ["es-translator"]
+        Core["EsTranslator<br/>(core)"]
+        Interp["Interpreter<br/>(Argos / Apertium)"]
+        Hit["TranslatedHit<br/>(result)"]
+        Core --> Interp --> Hit
+    end
+    ESRead[("Elasticsearch<br/>(read)")] --> Core
+    Hit --> ESWrite[("Elasticsearch<br/>(write)")]
 ```
 
 ## Core Components
@@ -82,11 +78,9 @@ Wraps Elasticsearch document hits (`es_translator/es.py`) and handles:
 
 Documents are translated immediately as they're retrieved:
 
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│    Scan     │────▶│  Translate  │────▶│    Save     │
-│  (scroll)   │     │  (parallel) │     │   (bulk)    │
-└─────────────┘     └─────────────┘     └─────────────┘
+```mermaid
+flowchart LR
+    Scan["Scan<br/>(scroll)"] --> Translate["Translate<br/>(parallel)"] --> Save["Save<br/>(bulk)"]
 ```
 
 ```bash
@@ -97,27 +91,19 @@ es-translator --url ... --index ... -s fr -t en
 
 Documents are queued for later processing via Celery:
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Planning Phase                          │
-│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐        │
-│  │    Scan     │────▶│   Queue     │────▶│    Redis    │        │
-│  │  (scroll)   │     │   Tasks     │     │   (broker)  │        │
-│  └─────────────┘     └─────────────┘     └─────────────┘        │
-└─────────────────────────────────────────────────────────────────┘
-                                                  │
-                                                  ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                        Execution Phase                          │
-│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐        │
-│  │   Worker    │────▶│  Translate  │────▶│    Save     │        │
-│  │  (Celery)   │     │             │     │             │        │
-│  └─────────────┘     └─────────────┘     └─────────────┘        │
-│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐        │
-│  │   Worker    │────▶│  Translate  │────▶│    Save     │        │
-│  │  (Celery)   │     │             │     │             │        │
-│  └─────────────┘     └─────────────┘     └─────────────┘        │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Planning ["Planning Phase"]
+        direction LR
+        PScan["Scan<br/>(scroll)"] --> PQueue["Queue<br/>Tasks"] --> Redis[("Redis<br/>(broker)")]
+    end
+    subgraph Execution ["Execution Phase"]
+        direction LR
+        W1["Worker<br/>(Celery)"] --> T1[Translate] --> S1[Save]
+        W2["Worker<br/>(Celery)"] --> T2[Translate] --> S2[Save]
+    end
+    Redis --> W1
+    Redis --> W2
 ```
 
 ```bash
@@ -132,22 +118,15 @@ es-translator-tasks --broker-url redis://... --concurrency 4
 
 es-translator uses Python's `multiprocessing` module for parallel translation:
 
-```
-┌───────────────────────────────────────────────────────────────┐
-│                        Main Process                           │
-│  ┌─────────────────────────────────────────────────────────┐  │
-│  │                   JoinableQueue                         │  │
-│  │  ┌────┐ ┌────┐ ┌────┐ ┌────┐ ┌────┐ ┌────┐ ┌────┐       │  │
-│  │  │doc1│ │doc2│ │doc3│ │doc4│ │doc5│ │doc6│ │... │       │  │
-│  │  └────┘ └────┘ └────┘ └────┘ └────┘ └────┘ └────┘       │  │
-│  └─────────────────────────────────────────────────────────┘  │
-└───────────────────────────────────────────────────────────────┘
-         │           │           │           │
-         ▼           ▼           ▼           ▼
-    ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐
-    │ Worker  │ │ Worker  │ │ Worker  │ │ Worker  │
-    │   1     │ │   2     │ │   3     │ │   4     │
-    └─────────┘ └─────────┘ └─────────┘ └─────────┘
+```mermaid
+flowchart TB
+    subgraph Main ["Main Process"]
+        Q["JoinableQueue<br/>doc1 · doc2 · doc3 · doc4 · doc5 · doc6 · ..."]
+    end
+    Q --> W1[Worker 1]
+    Q --> W2[Worker 2]
+    Q --> W3[Worker 3]
+    Q --> W4[Worker 4]
 ```
 
 Configure with `--pool-size`:
