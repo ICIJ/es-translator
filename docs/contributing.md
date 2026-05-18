@@ -68,7 +68,6 @@ The project uses a Makefile for common development tasks. Here's a reference of 
 | Command | Description |
 |---------|-------------|
 | `make serve-doc` | Start a local documentation server for preview |
-| `make publish-doc` | Deploy documentation to GitHub Pages |
 
 ### Building & Cleaning
 

@@ -140,7 +140,6 @@ es-translator follows [Semantic Versioning](https://semver.org/):
 | `make distribute`               | Build and publish to PyPI (manual fallback)  |
 | `make docker-setup-multiarch`   | Configure buildx for multi-arch builds       |
 | `make docker-publish`           | Build and push Docker image (manual fallback)|
-| `make publish-doc`              | Deploy docs to GitHub Pages (manual fallback, uses `gh-pages` branch) |
 
 ## Manual fallback
 
@@ -168,11 +167,7 @@ make docker-publish
 
 ### Publish the docs manually
 
-```bash
-make publish-doc
-```
-
-This runs `mkdocs gh-deploy`, which builds the site and force-pushes it to the `gh-pages` branch. Note that this is the **old** delivery path — if Pages is configured to deploy via Actions, pushing to `gh-pages` will not update the live site. Switch Pages back to "Deploy from a branch" temporarily if you need to use this fallback.
+Docs publish only via the `publish-docs` CI job on release. If it fails, re-run it from the GitHub Actions UI (or via `gh workflow run`). There is no local equivalent — Zensical does not ship a `gh-deploy` command.
 
 ## Troubleshooting
 

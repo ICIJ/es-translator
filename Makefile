@@ -1,7 +1,7 @@
 .PHONY: help install test lint format clean build distribute \
         bump-patch bump-minor bump-major _bump _bump-success \
         docker-setup-multiarch docker-publish docker-run \
-        serve-doc publish-doc
+        serve-doc
 
 SRC := es_translator
 DOCKER_USER := icij
@@ -19,7 +19,6 @@ help:
 	@echo ""
 	@echo "Documentation:"
 	@echo "  make serve-doc      Serve the documentation locally"
-	@echo "  make publish-doc    Deploy documentation to GitHub Pages"
 	@echo ""
 	@echo "Docker:"
 	@echo "  make docker-setup-multiarch   Configure buildx for multi-arch builds"
@@ -111,6 +110,3 @@ docker-run:
 
 serve-doc:
 	@poetry run zensical serve --dev-addr 0.0.0.0:4000
-
-publish-doc:
-	@echo "Docs are published by CI on release. See docs/releasing.md or run: make bump-patch"
