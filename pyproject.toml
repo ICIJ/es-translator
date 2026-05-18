@@ -8,7 +8,7 @@ license = "GNU AFFERO GENERAL PUBLIC LICENSE"
 packages = [{include = "es_translator"}]
 
 [tool.poetry.dependencies]
-python = "^3.9,<3.13"
+python = ">=3.10,<3.13"
 click = "^8"
 elasticsearch = ">=7.10,<7.18"
 elasticsearch-dsl = ">=7,<8.0.0"
@@ -52,7 +52,7 @@ filterwarnings = [
 # Set the maximum line length to 120
 line-length = 120
 # Assume Python 3.9+
-target-version = "py39"
+target-version = "py310"
 # Exclude common directories
 exclude = [
     ".bzr",

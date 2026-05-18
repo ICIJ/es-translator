@@ -10,7 +10,7 @@ environment variable before the library reads its configuration.
 import os
 import tempfile
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from filelock import FileLock, Timeout
 
@@ -90,11 +90,11 @@ class Argos(AbstractInterpreter):
 
     def __init__(
         self,
-        source: Optional[str] = None,
-        target: Optional[str] = None,
-        intermediary: Optional[str] = None,
-        pack_dir: Optional[str] = None,
-        device: Optional[str] = None,
+        source: str | None = None,
+        target: str | None = None,
+        intermediary: str | None = None,
+        pack_dir: str | None = None,
+        device: str | None = None,
     ) -> None:
         """Initialize the Argos interpreter.
 
@@ -199,7 +199,7 @@ class Argos(AbstractInterpreter):
         argospackage = _get_argos_package()
         return package in argospackage.get_installed_packages()
 
-    def download_and_install_package(self, package: Any) -> Optional[Any]:
+    def download_and_install_package(self, package: Any) -> Any | None:
         """Download and install a language package.
 
         Uses file locking to prevent concurrent downloads of the same package.

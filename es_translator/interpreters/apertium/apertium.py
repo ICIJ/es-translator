@@ -7,7 +7,6 @@ for intermediary language pairs when direct translation is unavailable.
 
 from functools import lru_cache
 from tempfile import NamedTemporaryFile
-from typing import Optional
 
 from sh import CommandNotFound, ErrorReturnCode
 
@@ -55,10 +54,10 @@ class Apertium(AbstractInterpreter):
 
     def __init__(
         self,
-        source: Optional[str] = None,
-        target: Optional[str] = None,
-        intermediary: Optional[str] = None,
-        pack_dir: Optional[str] = None,
+        source: str | None = None,
+        target: str | None = None,
+        intermediary: str | None = None,
+        pack_dir: str | None = None,
     ) -> None:
         """Initialize the Apertium interpreter.
 
@@ -85,7 +84,7 @@ class Apertium(AbstractInterpreter):
             logger.info(f'Existing package(s) found for pair {self.pair}')
 
     @property
-    def pair_package(self) -> Optional[str]:
+    def pair_package(self) -> str | None:
         """Get the package name for the current language pair.
 
         Returns:
@@ -124,7 +123,7 @@ class Apertium(AbstractInterpreter):
         return f'{self.source_alpha_3}-{self.intermediary_alpha_3}'
 
     @property
-    def intermediary_source_pair_package(self) -> Optional[str]:
+    def intermediary_source_pair_package(self) -> str | None:
         """Get package name for source-to-intermediary pair.
 
         Returns:
@@ -142,7 +141,7 @@ class Apertium(AbstractInterpreter):
         return f'{self.intermediary_alpha_3}-{self.target_alpha_3}'
 
     @property
-    def intermediary_target_pair_package(self) -> Optional[str]:
+    def intermediary_target_pair_package(self) -> str | None:
         """Get package name for intermediary-to-target pair.
 
         Returns:
@@ -205,7 +204,7 @@ class Apertium(AbstractInterpreter):
         # Remove empty values
         return [p for p in pairs if p != '']
 
-    def pair_to_pair_package(self, pair: str) -> Optional[str]:
+    def pair_to_pair_package(self, pair: str) -> str | None:
         """Convert language pair to package name.
 
         Checks both the pair and its reverse for availability in remote packages.
@@ -235,7 +234,7 @@ class Apertium(AbstractInterpreter):
         else:
             self.download_intermediary_pairs()
 
-    def download_pair(self, pair: Optional[str] = None) -> str:
+    def download_pair(self, pair: str | None = None) -> str:
         """Download and install a specific language pair package.
 
         Args:

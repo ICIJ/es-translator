@@ -5,7 +5,6 @@ This module defines the interface that all translation interpreters must impleme
 
 from abc import ABC, abstractmethod
 from os.path import abspath
-from typing import Optional
 
 from ..alpha import to_alpha_2, to_alpha_3, to_name
 
@@ -28,10 +27,10 @@ class AbstractInterpreter(ABC):
 
     def __init__(
         self,
-        source: Optional[str] = None,
-        target: Optional[str] = None,
-        intermediary: Optional[str] = None,
-        pack_dir: Optional[str] = None,
+        source: str | None = None,
+        target: str | None = None,
+        intermediary: str | None = None,
+        pack_dir: str | None = None,
     ) -> None:
         """Initialize the interpreter.
 

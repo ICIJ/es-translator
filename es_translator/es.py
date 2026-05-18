@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl.utils import ObjectBase
@@ -44,7 +44,7 @@ class TranslatedHit:
         self.force = force
 
     @property
-    def source_value(self) -> Optional[str]:
+    def source_value(self) -> str | None:
         """Get the source text value from the document.
 
         Returns:
@@ -71,7 +71,7 @@ class TranslatedHit:
         return self.hit.meta.id
 
     @property
-    def routing(self) -> Optional[str]:
+    def routing(self) -> str | None:
         """Get the document routing value.
 
         Returns:
