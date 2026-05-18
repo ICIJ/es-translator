@@ -92,7 +92,7 @@ Use the semver target that matches the change:
 Each target:
 
 1. Updates the version in `pyproject.toml` via `poetry version`
-2. Commits the change as `build: bump to <version>`
+2. Commits the change as `build: bump to <version> [skip ci]` (the marker skips the redundant push-triggered CI run; the release-triggered publish jobs are unaffected)
 3. Tags the commit with `<version>` (no `v` prefix)
 
 The Makefile prints the next steps on success.
