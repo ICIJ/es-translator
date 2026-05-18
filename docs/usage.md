@@ -20,6 +20,18 @@ es-translator \
 
 ## Installation
 
+=== "pipx"
+
+    ```bash
+    pipx install es-translator
+    ```
+
+=== "uv"
+
+    ```bash
+    uv tool install es-translator
+    ```
+
 === "pip"
 
     ```bash

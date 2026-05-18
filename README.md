@@ -10,6 +10,12 @@ A lazy yet bulletproof machine translation tool for Elasticsearch.
 pipx install es-translator
 ```
 
+### uv
+
+```bash
+uv tool install es-translator
+```
+
 ### Docker
 
 ```bash

@@ -31,6 +31,30 @@ es-translator reads documents from Elasticsearch, translates them using machine 
 
 ## Quick Start
 
+=== "pipx"
+
+    ```bash
+    pipx install es-translator
+
+    es-translator \
+      --url "http://localhost:9200" \
+      --index my-index \
+      --source-language fr \
+      --target-language en
+    ```
+
+=== "uv"
+
+    ```bash
+    uv tool install es-translator
+
+    es-translator \
+      --url "http://localhost:9200" \
+      --index my-index \
+      --source-language fr \
+      --target-language en
+    ```
+
 === "pip"
 
     ```bash
