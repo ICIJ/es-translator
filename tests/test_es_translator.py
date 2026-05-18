@@ -98,6 +98,28 @@ class EsTranslatorTestCase(unittest.TestCase):
             mock_delay.assert_has_calls(expected_calls)
             self.assertEqual(mock_delay.call_count, len(search_results))
 
+    def test_find_document_uses_routing_when_distinct_from_id(self):
+        self.translator.create_client = MagicMock(return_value='client')
+        params = {'index': 'test_index', 'id': 'child_doc', 'routing': 'parent_doc'}
+
+        with patch('es_translator.es_translator.Document.get') as mock_get:
+            self.translator.find_document(params)
+
+        mock_get.assert_called_once_with(
+            index='test_index', id='child_doc', routing='parent_doc', using='client'
+        )
+
+    def test_find_document_falls_back_to_id_when_routing_absent(self):
+        self.translator.create_client = MagicMock(return_value='client')
+        params = {'index': 'test_index', 'id': 'doc1'}
+
+        with patch('es_translator.es_translator.Document.get') as mock_get:
+            self.translator.find_document(params)
+
+        mock_get.assert_called_once_with(
+            index='test_index', id='doc1', routing='doc1', using='client'
+        )
+
     def test_max_translated_content(self):
         interpreter = MagicMock()
         interpreter.translate = 'this is a more than 8 char string'

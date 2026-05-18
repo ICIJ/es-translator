@@ -223,7 +223,7 @@ class EsTranslator:
             The found Document object.
         """
         using = self.create_client()
-        routing = getattr(params, 'routing', params['id'])
+        routing = params.get('routing', params['id'])
         return Document.get(index=params['index'], id=params['id'], routing=routing, using=using)
 
     def translate_document(self, hit: ObjectBase) -> None:
