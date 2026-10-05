@@ -340,4 +340,8 @@ class Argos(AbstractInterpreter):
         """
         # Always configure device before translation (needed for multiprocessing workers)
         self._ensure_device_configured()
-        return _translate_paragraphs_in_one_batch(self.translation.underlying, text_input)
+        translation = self.translation
+        underlying = getattr(translation, 'underlying', None)
+        if not isinstance(underlying, _get_argos_translate().PackageTranslation):
+            return translation.translate(text_input)
+        return _translate_paragraphs_in_one_batch(underlying, text_input)

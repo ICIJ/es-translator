@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, PropertyMock, patch
 
 from es_translator.config import DEFAULT_ARGOS_BATCH_SIZE
 from es_translator.interpreters import Argos
@@ -42,6 +42,12 @@ class TestArgos(TestCase):
             self.assertEqual(self.fra2eng.translate(text), expected)
         translator.translate_batch.assert_called_once()
         self.assertEqual(translator.translate_batch.call_args.kwargs['max_batch_size'], DEFAULT_ARGOS_BATCH_SIZE)
+
+    def test_translation_falls_back_to_argos_when_not_a_package_translation(self):
+        composite_translation = MagicMock(spec=['translate'])
+        composite_translation.translate.return_value = 'Good morning'
+        with patch.object(Argos, 'translation', new_callable=PropertyMock, return_value=composite_translation):
+            self.assertEqual(self.fra2eng.translate('bonjour'), 'Good morning')
 
     def test_find_necessary_package(self):
         with patch('argostranslate.package.get_available_packages', return_value=[self.package]):
