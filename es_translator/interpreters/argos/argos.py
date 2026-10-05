@@ -14,7 +14,7 @@ from typing import Any
 
 from filelock import FileLock, Timeout
 
-from ...config import DEFAULT_DEVICE
+from ...config import DEFAULT_ARGOS_BATCH_SIZE, DEFAULT_DEVICE
 from ...logger import logger
 from ..abstract import AbstractInterpreter
 
@@ -65,6 +65,73 @@ def _get_argos_settings():
     from argostranslate import settings
 
     return settings
+
+
+def _load_translator(package_translation: Any) -> Any:
+    """Load the CTranslate2 model the same way argostranslate does, once per package."""
+    if package_translation.translator is None:
+        import ctranslate2
+
+        settings = _get_argos_settings()
+        package_translation.translator = ctranslate2.Translator(
+            str(package_translation.pkg.package_path / 'model'),
+            device=settings.device,
+            inter_threads=settings.inter_threads,
+            intra_threads=settings.intra_threads,
+            compute_type=settings.compute_type,
+        )
+    return package_translation.translator
+
+
+def _tokenize_paragraphs(package_translation: Any, paragraphs: list[str]) -> tuple[list[int], list[list[str]]]:
+    """Split every paragraph into tokenized sentences, remembering which paragraph each one belongs to."""
+    paragraph_indexes = []
+    tokenized_sentences = []
+    for paragraph_index, paragraph in enumerate(paragraphs):
+        for sentence in package_translation.sentencizer.split_sentences(paragraph):
+            paragraph_indexes.append(paragraph_index)
+            tokenized_sentences.append(package_translation.pkg.tokenizer.encode(sentence))
+    return paragraph_indexes, tokenized_sentences
+
+
+def _translate_tokenized_sentences(package_translation: Any, tokenized_sentences: list[list[str]]) -> list[Any]:
+    """Translate all sentences in a single CTranslate2 call, with the same options as argostranslate."""
+    target_prefix = package_translation.pkg.target_prefix
+    return _load_translator(package_translation).translate_batch(
+        tokenized_sentences,
+        target_prefix=[[target_prefix]] * len(tokenized_sentences) if target_prefix else None,
+        replace_unknowns=True,
+        max_batch_size=DEFAULT_ARGOS_BATCH_SIZE,
+        batch_type='tokens',
+        beam_size=max(1, _get_argos_settings().beam_size),
+        num_hypotheses=1,
+        length_penalty=0.2,
+    )
+
+
+def _decode_paragraph(package: Any, tokens: list[str]) -> str:
+    """Detokenize a translated paragraph, stripping the target prefix and leading space like argostranslate."""
+    value = package.tokenizer.decode(tokens)
+    if package.target_prefix and value.startswith(package.target_prefix):
+        value = value[len(package.target_prefix) :]
+    return value.removeprefix(' ')
+
+
+def _translate_paragraphs_in_one_batch(package_translation: Any, text: str) -> str:
+    """Translate every line of the text in one batch.
+
+    argostranslate translates line by line, one model call per line, which leaves the GPU idle
+    on documents made of many short lines (chat logs). Batching all lines produces the same
+    output much faster.
+    """
+    paragraphs = text.split('\n')
+    paragraph_indexes, tokenized_sentences = _tokenize_paragraphs(package_translation, paragraphs)
+    results = _translate_tokenized_sentences(package_translation, tokenized_sentences)
+    tokens_by_paragraph = [[] for _ in paragraphs]
+    for paragraph_index, result in zip(paragraph_indexes, results, strict=True):
+        tokens_by_paragraph[paragraph_index].extend(result.hypotheses[0])
+    translated_paragraphs = [_decode_paragraph(package_translation.pkg, tokens) for tokens in tokens_by_paragraph]
+    return '\n'.join(translated_paragraphs).lstrip('\n')
 
 
 class ArgosPairNotAvailable(Exception):
@@ -273,4 +340,4 @@ class Argos(AbstractInterpreter):
         """
         # Always configure device before translation (needed for multiprocessing workers)
         self._ensure_device_configured()
-        return self.translation.translate(text_input)
+        return _translate_paragraphs_in_one_batch(self.translation.underlying, text_input)

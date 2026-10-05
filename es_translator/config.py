@@ -23,6 +23,8 @@ DEFAULT_MAX_CONTENT_LENGTH = os.environ.get('ES_TRANSLATOR_MAX_CONTENT_LENGTH', 
 # Device configuration (for Argos neural translation)
 # Options: 'cpu', 'cuda', 'auto'
 DEFAULT_DEVICE = os.environ.get('ES_TRANSLATOR_DEVICE', 'auto')
+# Maximum number of tokens per Argos translation batch
+DEFAULT_ARGOS_BATCH_SIZE = int(os.environ.get('ARGOS_BATCH_SIZE', '32768'))
 
 # Worker configuration
 DEFAULT_POOL_SIZE = int(os.environ.get('ES_TRANSLATOR_POOL_SIZE', '1'))
