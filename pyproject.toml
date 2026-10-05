@@ -17,7 +17,7 @@ pycountry = "^24"
 deb-pkg-tools = "^8.4"
 coloredlogs = "*"
 urllib3 = "^1.26"
-argostranslate = "^1.9.6"
+argostranslate = "^1.10.0"
 rich = "^13"
 celery = {extras = ["redis"], version = "^5.3.1"}
 filelock = "^3.12.2"
