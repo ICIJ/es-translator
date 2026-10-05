@@ -1,6 +1,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
+from es_translator.config import DEFAULT_ARGOS_BATCH_SIZE
 from es_translator.interpreters import Argos
 
 
@@ -33,23 +34,14 @@ class TestArgos(TestCase):
     def test_translation_from_de_to_en(self):
         self.assertEqual(self.fra2eng.translate('bonjour monsieur, comment ça va ?'), 'Hello sir, how are you?')
 
-    def test_translation_of_several_lines_matches_argos(self):
+    def test_translation_of_several_lines_matches_argos_in_one_batch(self):
         text = 'bonjour monsieur\n\ncomment ça va ?\nà demain.'
         expected = self.fra2eng.translation.translate(text)
-        self.assertEqual(self.fra2eng.translate(text), expected)
-
-    def test_translation_of_several_lines_is_sent_in_one_batch(self):
-        self.fra2eng.translate('bonjour')
         package_translation = self.fra2eng.translation.underlying
-        real_translator = package_translation.translator
-        package_translation.translator = MagicMock(wraps=real_translator)
-        try:
-            self.fra2eng.translate('bonjour monsieur\ncomment ça va ?\nà demain.')
-            translate_batch = package_translation.translator.translate_batch
-        finally:
-            package_translation.translator = real_translator
-        translate_batch.assert_called_once()
-        self.assertEqual(translate_batch.call_args.kwargs['max_batch_size'], 32768)
+        with patch.object(package_translation, 'translator', MagicMock(wraps=package_translation.translator)) as translator:
+            self.assertEqual(self.fra2eng.translate(text), expected)
+        translator.translate_batch.assert_called_once()
+        self.assertEqual(translator.translate_batch.call_args.kwargs['max_batch_size'], DEFAULT_ARGOS_BATCH_SIZE)
 
     def test_find_necessary_package(self):
         with patch('argostranslate.package.get_available_packages', return_value=[self.package]):
