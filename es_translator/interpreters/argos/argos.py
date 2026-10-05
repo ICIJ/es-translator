@@ -84,7 +84,6 @@ def _load_translator(package_translation: Any) -> Any:
 
 
 def _tokenize_paragraphs(package_translation: Any, paragraphs: list[str]) -> tuple[list[int], list[list[str]]]:
-    """Split every paragraph into tokenized sentences, remembering which paragraph each one belongs to."""
     paragraph_indexes = []
     tokenized_sentences = []
     for paragraph_index, paragraph in enumerate(paragraphs):
@@ -95,7 +94,7 @@ def _tokenize_paragraphs(package_translation: Any, paragraphs: list[str]) -> tup
 
 
 def _translate_tokenized_sentences(package_translation: Any, tokenized_sentences: list[list[str]]) -> list[Any]:
-    """Translate all sentences in a single CTranslate2 call, with the same options as argostranslate."""
+    """Use argostranslate's options, except a token budget large enough to batch many lines together."""
     target_prefix = package_translation.pkg.target_prefix
     return _load_translator(package_translation).translate_batch(
         tokenized_sentences,
@@ -110,7 +109,6 @@ def _translate_tokenized_sentences(package_translation: Any, tokenized_sentences
 
 
 def _decode_paragraph(package: Any, tokens: list[str]) -> str:
-    """Detokenize a translated paragraph, stripping the target prefix and leading space like argostranslate."""
     value = package.tokenizer.decode(tokens)
     if package.target_prefix and value.startswith(package.target_prefix):
         value = value[len(package.target_prefix) :]
@@ -121,8 +119,7 @@ def _translate_paragraphs_in_one_batch(package_translation: Any, text: str) -> s
     """Translate every line of the text in one batch.
 
     argostranslate translates line by line, one model call per line, which leaves the GPU idle
-    on documents made of many short lines (chat logs). Batching all lines produces the same
-    output much faster.
+    on documents made of many short lines (chat logs). Batching lines together is much faster.
     """
     paragraphs = text.split('\n')
     paragraph_indexes, tokenized_sentences = _tokenize_paragraphs(package_translation, paragraphs)
