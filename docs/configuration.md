@@ -21,6 +21,7 @@ All CLI defaults can be overridden via environment variables:
 | `ES_TRANSLATOR_TARGET_FIELD` | Default target field | `content_translated` |
 | `ES_TRANSLATOR_MAX_CONTENT_LENGTH` | Max content length | `19G` |
 | `ES_TRANSLATOR_DEVICE` | Device for Argos (cpu, cuda, auto) | `auto` |
+| `ES_TRANSLATOR_ARGOS_BATCH_SIZE` | Max tokens per Argos translation batch | `1024` |
 | `ES_TRANSLATOR_POOL_SIZE` | Default worker pool size | `1` |
 | `ES_TRANSLATOR_POOL_TIMEOUT` | Worker timeout (seconds) | `1800` |
 | `ES_TRANSLATOR_SCAN_SCROLL` | Elasticsearch scroll duration | `5m` |
