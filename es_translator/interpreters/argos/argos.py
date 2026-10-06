@@ -7,6 +7,7 @@ Note: argostranslate imports are deferred to allow setting ARGOS_DEVICE_TYPE
 environment variable before the library reads its configuration.
 """
 
+import logging
 import os
 import tempfile
 from pathlib import Path
@@ -17,6 +18,11 @@ from filelock import FileLock, Timeout
 from ...config import DEFAULT_ARGOS_BATCH_SIZE, DEFAULT_DEVICE
 from ...logger import logger
 from ..abstract import AbstractInterpreter
+
+# argostranslate logs one INFO line per sentence split, which floods worker logs.
+# A filter, not setLevel: argostranslate.utils resets its own level to INFO when imported,
+# and this module imports it lazily, so any level set here would be overwritten.
+logging.getLogger('argostranslate.utils').addFilter(lambda record: record.levelno > logging.INFO)
 
 
 def _configure_device(device: str) -> str:
